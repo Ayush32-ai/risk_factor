@@ -1,4 +1,4 @@
-import { pool } from '../db';
+import { pool, redis, isRedisReady } from '../db';
 import { mockData } from '../data/mock';
 
 // Store WebSocket server reference for broadcasting
@@ -10,10 +10,19 @@ export function setWebSocketServer(wss: any) {
 
 export async function getOverviewMetrics() {
   try {
+    if (isRedisReady()) {
+      const cached = await redis.get('overview:metrics');
+      if (cached) return JSON.parse(cached);
+    }
     const { rows } = await pool.query(
       `SELECT * FROM risk_metrics ORDER BY recorded_at DESC LIMIT 1`
     );
-    if (rows[0]) return rows[0];
+    if (rows[0]) {
+      if (isRedisReady()) {
+        await redis.set('overview:metrics', JSON.stringify(rows[0]), 'EX', 15);
+      }
+      return rows[0];
+    }
   } catch {
     /* fallback */
   }

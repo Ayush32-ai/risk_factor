@@ -32,7 +32,6 @@ services:
     image: neo4j:5-community
     environment:
       NEO4J_AUTH: neo4j/sentinel_dev
-      NEO4J_PLUGINS: '["apoc"]'
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -47,7 +46,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "4000:4000"
+      - "4001:4000"
     environment:
       NODE_ENV: development
       PORT: 4000
@@ -72,7 +71,7 @@ services:
   ai-engine:
     build: ./ai-engine
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       GROK_API_KEY: ${GROK_API_KEY:-}
       NEO4J_URI: bolt://neo4j:7687
@@ -83,6 +82,25 @@ services:
         condition: service_healthy
     volumes:
       - ./ai-engine/app:/app/app
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:9.0.0
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana_dashboard.json:/var/lib/grafana/dashboards/default_dashboard.json:ro
 
   frontend:
     build: ./frontend
@@ -97,3 +115,4 @@ services:
 volumes:
   postgres_data:
   neo4j_data:
+  grafana_data:

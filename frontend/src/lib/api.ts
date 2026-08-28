@@ -267,6 +267,86 @@ class ApiClient {
       body: JSON.stringify(chargebackData)
     });
   }
+
+  getMlMetrics() {
+    return this.request<MlEvaluationReport>('/api/ml/metrics');
+  }
+
+  runMlEvaluation(opts?: { n_samples?: number; holdout_frac?: number }) {
+    return this.request<MlEvaluationReport>('/api/ml/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(opts ?? { n_samples: 2000, holdout_frac: 0.25 }),
+    });
+  }
+
+  getMlMonitoring() {
+    return this.request<{
+      model_version: string;
+      champion_version: string;
+      challenger_version: string | null;
+      drift: { p_value: number; drift: boolean };
+      retrain: { needed: boolean; reasons: string[]; thresholds: Record<string, number> };
+      summary: Record<string, number>;
+      history: Array<Record<string, unknown>>;
+      holdout: Record<string, unknown>;
+      production: Record<string, unknown>;
+    }>('/api/ml/monitoring');
+  }
+
+  retrainMlModel() {
+    return this.request<MlEvaluationReport>('/api/ml/retrain', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+}
+
+export interface MlDetectorMetrics {
+  id: string;
+  name: string;
+  family: string;
+  description?: string;
+  precision: number;
+  recall: number;
+  f1: number;
+  roc_auc: number;
+  status: string;
+  false_positive_cost_inr: number;
+  missed_fraud_cost_inr: number;
+  confusion_matrix: { tn: number; fp: number; fn: number; tp: number };
+  roc_curve: Array<{ fpr: number; tpr: number }>;
+  holdout?: { n_train: number; n_test: number; fraud_rate_test: number };
+}
+
+export interface MlEvaluationReport {
+  evaluated_at: string;
+  model_version: string;
+  champion_version: string;
+  challenger_version: string | null;
+  ab_test: {
+    enabled: boolean;
+    champion: string;
+    challenger: string | null;
+    traffic_split: { champion: number; challenger: number };
+  };
+  summary: {
+    detectors: number;
+    avg_roc_auc: number;
+    avg_precision: number;
+    avg_recall: number;
+    false_positive_cost_inr: number;
+    missed_fraud_cost_inr: number;
+    total_error_cost_inr: number;
+    healthy_detectors: number;
+    degraded_detectors: number;
+    critical_detectors: number;
+  };
+  cost_model: { fp_review_inr: number; fn_missed_fraud_inr: number; notes: string };
+  holdout: Record<string, unknown>;
+  detectors: MlDetectorMetrics[];
+  drift: { p_value: number; drift: boolean };
+  retrain: { needed: boolean; reasons: string[]; thresholds: Record<string, number>; retrained?: boolean; promoted?: boolean };
+  production: Record<string, unknown>;
 }
 
 export const api = new ApiClient();

@@ -1,0 +1,38 @@
+{
+  "precision_recall": {
+    "labels": "[0 1]",
+    "precision": [
+      1.0,
+      1.0
+    ],
+    "recall": [
+      1.0,
+      1.0
+    ],
+    "f1": [
+      1.0,
+      1.0
+    ],
+    "support": [
+      48,
+      2
+    ]
+  },
+  "roc_auc": 1.0,
+  "confusion_matrix": [
+    [
+      48,
+      0
+    ],
+    [
+      0,
+      2
+    ]
+  ],
+  "false_positive_cost": 0.0,
+  "cv_mean_roc_auc": NaN,
+  "drift_test": {
+    "p_value": 0.004975124378109453,
+    "drift": true
+  }
+}

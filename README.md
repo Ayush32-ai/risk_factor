@@ -63,6 +63,8 @@ SEE RISK → ATTACK SYSTEM → FIND BLIND SPOT → UNDERSTAND WHY → GENERATE D
 | AI Investigation | `/investigate` | Graph AI + Grok API risk analysis |
 | Blind Spots | `/blind-spots` | Discovered detection gaps |
 | Defense Lab | `/defense` | AI counter-measures & validation |
+| Chargebacks | `/chargebacks` | Evidence collection and win probability |
+| Model Evaluation | `/ml-evaluation` | Hold-out precision/recall, FP cost, ROC, drift, retrain |
 | Audit & Security | `/audit` | Immutable operation log |
 
 ## Quick Start
@@ -162,6 +164,10 @@ Optional: Set `GROK_API_KEY` for live AI assessments (mock responses used otherw
 | POST | `/api/defense/generate` | Generate defense |
 | POST | `/api/defense/simulate` | Re-run attacks |
 | GET | `/api/audit` | Audit trail |
+| GET | `/api/ml/metrics` | Hold-out precision/recall, ROC, FP cost per detector |
+| POST | `/api/ml/evaluate` | Re-run measurement suite |
+| GET | `/api/ml/monitoring` | Drift, retrain gates, version history |
+| POST | `/api/ml/retrain` | Retrain and promote champion (admin) |
 | WS | `/ws` | Live event feed |
 
 ## License

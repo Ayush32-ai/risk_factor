@@ -2,10 +2,23 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { getGraphData, getInvestigation } from '../services/ai-client';
 import { mockData } from '../data/mock';
+import { getNeo4jDriver, isNeo4jReady } from '../db';
+import { fetchPaymentGraph } from '../db/graph';
 
 const router = Router();
 
 router.get('/network', authMiddleware, async (_req: Request, res: Response) => {
+  if (isNeo4jReady()) {
+    try {
+      const graph = await fetchPaymentGraph(getNeo4jDriver());
+      if (graph?.nodes.length) {
+        res.json(graph);
+        return;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
   const graph = await getGraphData();
   res.json(graph);
 });

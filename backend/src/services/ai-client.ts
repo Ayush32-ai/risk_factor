@@ -10,7 +10,7 @@ export async function callAiEngine<T>(
       method: body ? 'POST' : 'GET',
       headers: { 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(60000),
     });
     if (!res.ok) return null;
     return (await res.json()) as T;

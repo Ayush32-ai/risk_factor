@@ -18,6 +18,7 @@ import auditRoutes from './routes/audit';
 import fraudSpikesRoutes from './routes/fraud-spikes';
 import returnsRoutes from './routes/returns';
 import chargebacksRoutes from './routes/chargebacks';
+import mlEvaluationRoutes from './routes/ml-evaluation';
 
 const app = express();
 const server = createServer(app);
@@ -55,6 +56,7 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/fraud-spikes', fraudSpikesRoutes);
 app.use('/api/returns', returnsRoutes);
 app.use('/api/chargebacks', chargebacksRoutes);
+app.use('/api/ml', mlEvaluationRoutes);
 
 async function start() {
   await connectDatabases();

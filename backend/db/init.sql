@@ -94,8 +94,8 @@ CREATE TABLE transactions (
 -- Seed default admin user (password: sentinel123)
 -- Hash generated with: bcrypt.hash('sentinel123', 10)
 INSERT INTO users (email, password_hash, name, role) VALUES
-('admin@razorpay.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sentinel Admin', 'admin'),
-('analyst@razorpay.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Risk Analyst', 'analyst');
+('admin@razorpay.com', '$2a$10$qWsT77mxZuqmLZfdIs7UN.PBK5nbvY9XQ0m2wVHC7rIyptcTB8nuK', 'Sentinel Admin', 'admin'),
+('analyst@razorpay.com', '$2a$10$qWsT77mxZuqmLZfdIs7UN.PBK5nbvY9XQ0m2wVHC7rIyptcTB8nuK', 'Risk Analyst', 'analyst');
 
 -- Seed risk metrics
 INSERT INTO risk_metrics (model_health, transactions_tested, blind_spots_count, critical_vulnerabilities, attacks_blocked_rate) VALUES

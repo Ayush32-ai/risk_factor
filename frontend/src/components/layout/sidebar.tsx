@@ -16,6 +16,7 @@ import {
   RotateCcw,
   CreditCard,
   LogOut,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/client-only';
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/fraud-spikes', label: 'Fraud Spikes', icon: TrendingUp },
   { href: '/return-risk', label: 'Return Risk', icon: RotateCcw },
   { href: '/chargebacks', label: 'Chargebacks', icon: CreditCard },
+  { href: '/ml-evaluation', label: 'Model Evaluation', icon: BarChart3 },
   { href: '/audit', label: 'Audit & Security', icon: ScrollText },
 ];
 

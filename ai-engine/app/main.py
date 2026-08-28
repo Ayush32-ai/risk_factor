@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import os
 from typing import Optional
 
 from app.engines.ml_engine import risk_engine
+from app.engines.evaluation_suite import evaluation_suite, DETECTORS
 from app.engines.attack_simulator import attack_simulator
 from app.engines.defense_engine import defense_engine
 from app.engines.graph_analyzer import graph_analyzer
@@ -11,6 +13,14 @@ from app.engines.groq_client import groq_client
 from app.engines.fraud_spike_detector import fraud_spike_detector
 from app.engines.return_risk_scorer import return_risk_scorer
 from app.engines.chargeback_evidence_responder import chargeback_evidence_responder
+try:
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    _prom_available = True
+except Exception:
+    _prom_available = False
+    def generate_latest():
+        return b""
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4"
 
 app = FastAPI(
     title="Razorpay Sentinel AI Engine",
@@ -73,7 +83,11 @@ class ChargebackRequest(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "sentinel-ai-engine", "engines": ["ml", "graph", "attack", "defense", "grok", "fraud_spike", "return_risk", "chargeback"]}
+    return {
+        "status": "ok",
+        "service": "sentinel-ai-engine",
+        "engines": ["ml", "graph", "attack", "defense", "grok", "fraud_spike", "return_risk", "chargeback", "evaluation"],
+    }
 
 
 # Existing endpoints
@@ -230,3 +244,65 @@ async def process_chargeback(req: ChargebackRequest):
         "due_date": case.due_date.isoformat(),
         "created_at": case.created_at.isoformat()
     }
+
+
+
+@app.get("/metrics")
+async def metrics():
+    data = generate_latest()
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+
+
+class EvaluateRequest(BaseModel):
+    n_samples: int = 2000
+    holdout_frac: float = 0.25
+    persist: bool = True
+
+
+@app.get("/api/ml/metrics")
+async def get_ml_metrics():
+    """Latest hold-out evaluation across all detectors (precision/recall, FP cost, ROC)."""
+    return evaluation_suite.latest()
+
+
+@app.get("/api/ml/detectors")
+async def get_ml_detectors():
+    latest = evaluation_suite.latest()
+    return {"detectors": latest.get("detectors", []), "catalog": DETECTORS}
+
+
+@app.get("/api/ml/monitoring")
+async def get_ml_monitoring():
+    """Production monitoring: drift, retrain triggers, version history."""
+    return evaluation_suite.monitoring()
+
+
+@app.post("/api/ml/evaluate")
+async def trigger_evaluate(req: Optional[EvaluateRequest] = None, alert_webhook: Optional[str] = None, x_api_key: Optional[str] = None):
+    """Run the full measurement suite on a synthetic hold-out set.
+
+    Optionally secured via `AI_EVAL_API_KEY` (`X-API-KEY` header or `x_api_key` query).
+    """
+    expected = os.environ.get("AI_EVAL_API_KEY")
+    provided = x_api_key or ""
+    if expected and provided != expected:
+        return Response(status_code=403, content="Forbidden")
+
+    n_samples = req.n_samples if req else 2000
+    holdout_frac = req.holdout_frac if req else 0.25
+    persist = req.persist if req else True
+
+    suite_report = evaluation_suite.run(n_samples=n_samples, holdout_frac=holdout_frac, persist=persist)
+    engine_result = risk_engine.evaluate(
+        n_samples=min(n_samples, 1000), holdout_frac=holdout_frac, alert_webhook=alert_webhook
+    )
+    return {"suite": suite_report, "engine": engine_result}
+
+
+@app.post("/api/ml/retrain")
+async def trigger_retrain(x_api_key: Optional[str] = None):
+    expected = os.environ.get("AI_EVAL_API_KEY")
+    provided = x_api_key or ""
+    if expected and provided != expected:
+        return Response(status_code=403, content="Forbidden")
+    return evaluation_suite.retrain()

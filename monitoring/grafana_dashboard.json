@@ -1,0 +1,24 @@
+{
+  "id": null,
+  "title": "ML Engine Overview",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "ROC AUC",
+      "targets": [{ "expr": "ml_engine_roc_auc", "refId": "A" }],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 6 }
+    },
+    {
+      "type": "graph",
+      "title": "False Positive Cost",
+      "targets": [{ "expr": "ml_engine_fp_cost", "refId": "A" }],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 6 }
+    },
+    {
+      "type": "graph",
+      "title": "Retrain Triggers",
+      "targets": [{ "expr": "ml_engine_retrain_total", "refId": "A" }],
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 6 }
+    }
+  ]
+}
