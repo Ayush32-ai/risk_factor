@@ -55,7 +55,7 @@ export default function OverviewPage() {
       if (message.type === 'metric_update') {
         setLiveMetrics(prev => ({
           ...prev,
-          ...message.payload,
+          ...(message.payload as Record<string, number>),
         }));
       } else if (message.type === 'activity_event') {
         const newActivity = {
