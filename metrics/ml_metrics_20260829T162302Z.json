@@ -1,0 +1,61 @@
+{
+  "timestamp": "20260829T162302Z",
+  "version": "1.0",
+  "metrics": {
+    "precision_recall": {
+      "legitimate": {
+        "precision": 0.9795918367346939,
+        "recall": 0.9896907216494846,
+        "f1_score": 0.9846153846153847,
+        "support": 97
+      },
+      "fraud": {
+        "precision": 0.5,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.4,
+        "support": 3
+      },
+      "macro_avg": {
+        "precision": 0.7397959183673469,
+        "recall": 0.6615120274914089,
+        "f1_score": 0.6923076923076923
+      }
+    },
+    "roc_auc": 0.6580756013745703,
+    "false_positive_cost": {
+      "false_positives": 1,
+      "false_negatives": 2,
+      "fp_cost_per_unit": 25.0,
+      "fn_cost_per_unit": 500.0,
+      "total_fp_cost": 25.0,
+      "total_fn_cost": 1000.0,
+      "total_cost": 1025.0,
+      "cost_effectiveness_ratio": 40.0
+    },
+    "roc_curve": {
+      "fpr": [
+        0.0,
+        0.010309278350515464,
+        0.020618556701030927,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.3333333333333333,
+        0.3333333333333333,
+        1.0
+      ],
+      "thresholds": [
+        Infinity,
+        0.9999796649639425,
+        0.3356574343687877,
+        1.2158683046955852e-06
+      ]
+    },
+    "drift_test": {
+      "drift": false,
+      "p_value": 1.0
+    },
+    "model_type": "fraud_risk_evaluation"
+  }
+}
