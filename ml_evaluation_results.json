@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-08-29T21:57:05.394709",
+  "timestamp": "2026-08-30T03:05:33.338082",
   "chargeback_case": {
-    "case_id": "CB_1788020815",
+    "case_id": "CB_1788039320",
     "win_probability": 66.75,
     "ml_confidence": 85.0,
     "recommendation": "CONTEST - MODERATE CONFIDENCE"
@@ -16,16 +16,16 @@
       "Abnormal velocity: 4.5x baseline",
       "Multiple merchant connections: 6"
     ],
-    "timestamp": "2026-08-29T21:57:05.021689"
+    "timestamp": "2026-08-30T03:05:32.916355"
   },
   "performance_metrics": {
     "chargeback_precision": 0.8645833333333334,
     "chargeback_recall": 0.8829787234042553,
     "fraud_precision": 1.0,
-    "fraud_recall": 1.0,
-    "roc_auc": 1.0,
+    "fraud_recall": 0.6666666666666666,
+    "roc_auc": 0.831615120274914,
     "total_fp_cost": 0.0,
-    "total_fn_cost": 0.0
+    "total_fn_cost": 500.0
   },
   "system_health": "healthy"
 }

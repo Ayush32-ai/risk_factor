@@ -138,10 +138,10 @@ export default function InvestigatePage() {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="sentinel-card border-green-500/20 bg-green-500/5"
+                className="bg-white border border-emerald-200 rounded-xl shadow-sm p-5"
               >
-                <h3 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                <h3 className="font-semibold text-emerald-700 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                   Real-time Updates
                 </h3>
                 <div className="space-y-2">
@@ -151,14 +151,14 @@ export default function InvestigatePage() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="flex items-center gap-3 p-2 bg-black/20 rounded"
+                      className="flex items-center gap-3 p-2 bg-emerald-50 border border-emerald-100 rounded-lg"
                     >
-                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
                       <div className="flex-1">
-                        <p className="text-sm text-green-100">{String(update.description)}</p>
-                        <p className="text-xs text-green-400/60">{String(update.type)}</p>
+                        <p className="text-sm text-slate-800">{String(update.description)}</p>
+                        <p className="text-xs text-slate-500">{String(update.type)}</p>
                       </div>
-                      <span className="text-xs text-green-400 font-mono">
+                      <span className="text-xs text-emerald-700 font-mono">
                         {new Date(String(update.timestamp)).toLocaleTimeString()}
                       </span>
                     </motion.div>
@@ -217,24 +217,24 @@ export default function InvestigatePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="sentinel-card border-blue-500/20 bg-blue-500/5"
+              className="bg-white border border-blue-200 rounded-xl shadow-sm p-5"
             >
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
                     AI Assessment
                     {isProcessing && (
-                      <div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     )}
                   </h3>
-                  <p className="text-white/80 leading-relaxed">
+                  <p className="text-base text-slate-800 leading-relaxed">
                     {String(inv?.aiAssessment ?? '')}
                   </p>
                   {isConnected && (
-                    <div className="mt-3 p-2 bg-blue-500/10 rounded text-xs text-blue-300">
+                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
                       <span className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
+                        <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
                         Real-time AI monitoring active - Assessment updates automatically
                       </span>
                     </div>

@@ -8,6 +8,22 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
 import json
 
+# DETECTORS list for main.py import
+DETECTORS = [
+    {
+        "id": "fraud_risk_scorer",
+        "name": "Fraud Risk Scorer",
+        "family": "risk_assessment",
+        "description": "ML-based fraud risk scoring engine with real-time evaluation"
+    },
+    {
+        "id": "chargeback_evidence_responder", 
+        "name": "Chargeback Evidence Responder",
+        "family": "chargeback_defense",
+        "description": "AI-powered chargeback evidence generation and win probability assessment"
+    }
+]
+
 
 class ModelEvaluationSuite:
     """Thread-safe evaluation suite for tracking model performance."""

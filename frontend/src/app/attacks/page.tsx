@@ -162,19 +162,19 @@ export default function AttacksPage() {
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20 }}
-              className="sentinel-card border-red-500/30 bg-red-500/5"
+              className="bg-white border border-red-200 rounded-xl shadow-sm p-5"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-red-500/10">
-                  <AlertTriangle className="w-6 h-6 text-red-400" />
+                <div className="p-3 rounded-lg bg-red-100">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-red-400">BLIND SPOT DISCOVERED</h3>
-                  <p className="text-white/80 mt-1">
+                  <h3 className="text-lg font-bold text-red-600">BLIND SPOT DISCOVERED</h3>
+                  <p className="text-slate-800 mt-1">
                     Attack successfully bypassed current detection model.
                     Detection rate of {detectionRate.toFixed(1)}% indicates a critical gap in the risk engine.
                   </p>
-                  <p className="text-sentinel-muted text-sm mt-2">
+                  <p className="text-slate-600 text-sm mt-2">
                     Scenario: {String(sim?.scenario ?? selectedScenario)} · Generation {String(sim?.generation ?? 17)}
                   </p>
                 </div>

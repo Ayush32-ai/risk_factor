@@ -199,7 +199,7 @@ export default function DefensePage() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className="px-3 py-2 text-sm bg-white text-slate-900 border border-blue-500 hover:bg-blue-50 rounded-lg transition-colors shadow-sm"
             >
               {showHistory ? 'Hide' : 'Show'} History
             </button>
@@ -308,16 +308,16 @@ export default function DefensePage() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="bg-white border border-sentinel-border rounded-xl shadow-sm p-5"
+            className="bg-white border border-blue-500 rounded-xl shadow-sm p-5"
           >
-            <h3 className="text-lg font-semibold mb-4 text-blue-900">Defense Generation History</h3>
+            <h3 className="text-lg font-semibold mb-4 text-black">Defense Generation History</h3>
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {historyData.history.slice(-10).reverse().map((entry: any, i: number) => (
-                <div key={i} className="p-3 rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div key={i} className="p-3 rounded-lg border border-blue-200 bg-white shadow-sm">
                   <div className="flex justify-between items-start gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-blue-900">{entry.attackPattern?.replace(/_/g, ' ') || 'General'}</p>
-                      <p className="text-xs text-slate-600">
+                      <p className="text-sm font-semibold text-slate-900">{entry.attackPattern?.replace(/_/g, ' ') || 'General'}</p>
+                      <p className="text-xs text-slate-700">
                         {entry.improvement || 0}% improvement • {entry.generatedRules?.length || 0} rules
                       </p>
                     </div>

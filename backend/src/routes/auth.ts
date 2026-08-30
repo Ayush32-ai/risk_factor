@@ -47,7 +47,8 @@ router.post('/login', validateBody(loginSchema), async (req: Request, res: Respo
       return;
     }
   } catch (err) {
-    console.log('💫 Database lookup failed, falling back to demo users:', err.message);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.log('💫 Database lookup failed, falling back to demo users:', errorMessage);
   }
 
   console.log('🔍 Checking demo users...');

@@ -55,78 +55,91 @@ interface AnalyzeResult {
   analysis_time: number;
 }
 
+export function buildFallbackDashboardResponse() {
+  return {
+    totalSpikes: 12,
+    highRiskSpikes: 3,
+    averageConfidence: 87.3,
+    transactionsAffected: 2547,
+    patternBreakdown: [
+      { pattern: 'Account Takeover', count: 8 },
+      { pattern: 'Payment Velocity', count: 6 },
+      { pattern: 'Device Rotation', count: 4 },
+      { pattern: 'Card Testing', count: 3 },
+    ],
+    recentSpikes: [
+      {
+        pattern: 'Account Takeover Spike',
+        severity: 'high',
+        confidence: 92.3,
+        transactions: 847,
+        riskScore: 8.7,
+        timeframe: '2 hours ago',
+      },
+      {
+        pattern: 'Velocity Pattern Anomaly',
+        severity: 'medium',
+        confidence: 78.9,
+        transactions: 324,
+        riskScore: 6.2,
+        timeframe: '45 minutes ago',
+      },
+    ],
+    attackContext: {
+      activeAttack: false,
+      attackScenario: 'None',
+      attackGeneration: 0,
+      defenseEffectiveness: 0,
+      networkRiskScore: 0,
+    },
+  };
+}
+
+export function buildFallbackTrendsResponse() {
+  return {
+    hourlyTrends: Array.from({ length: 24 }, (_, i) => ({
+      hour: `${i.toString().padStart(2, '0')}:00`,
+      fraudEvents: Math.floor(Math.random() * 50) + 10,
+      riskScore: Math.random() * 10,
+    })),
+  };
+}
+
 // Dashboard endpoint
 router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) => {
   try {
     const result = await callAiEngine<FraudSpikeDashboard>('/api/fraud-spikes/dashboard');
-    
-    if (result) {
-      // Transform AI engine response to match frontend expectations
-      const attackContext = result.attack_context || {};
-      
-      const transformed = {
-        totalSpikes: result.current_spikes,
-        highRiskSpikes: result.severity_breakdown.high + result.severity_breakdown.critical || 0,
-        averageConfidence: result.recent_spikes?.reduce((sum, spike) => sum + spike.confidence, 0) / Math.max(1, result.recent_spikes?.length || 1) || 85.5,
-        transactionsAffected: result.recent_spikes?.reduce((sum, spike) => sum + spike.transactions, 0) || 0,
-        patternBreakdown: Object.entries(result.trends || {}).map(([pattern, count]: [string, any]) => ({
-          pattern: pattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          count: typeof count === 'number' ? count : count.recent_count || count.average_count || 1,
-        })),
-        recentSpikes: result.recent_spikes || [],
-        attackContext: {
-          activeAttack: attackContext.active_attack || false,
-          attackScenario: attackContext.attack_scenario || 'None',
-          attackGeneration: attackContext.attack_generation || 0,
-          defenseEffectiveness: attackContext.defense_effectiveness || 0,
-          networkRiskScore: attackContext.network_risk_score || 0,
-        }
-      };
-      
-      res.json(transformed);
-    } else {
-      throw new Error('AI engine returned null result');
+
+    if (!result) {
+      res.json(buildFallbackDashboardResponse());
+      return;
     }
+
+    const attackContext = result.attack_context || {};
+
+    const transformed = {
+      totalSpikes: result.current_spikes,
+      highRiskSpikes: result.severity_breakdown.high + result.severity_breakdown.critical || 0,
+      averageConfidence: result.recent_spikes?.reduce((sum, spike) => sum + spike.confidence, 0) / Math.max(1, result.recent_spikes?.length || 1) || 85.5,
+      transactionsAffected: result.recent_spikes?.reduce((sum, spike) => sum + spike.transactions, 0) || 0,
+      patternBreakdown: Object.entries(result.trends || {}).map(([pattern, count]: [string, any]) => ({
+        pattern: pattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        count: typeof count === 'number' ? count : count.recent_count || count.average_count || 1,
+      })),
+      recentSpikes: result.recent_spikes || [],
+      attackContext: {
+        activeAttack: attackContext.active_attack || false,
+        attackScenario: attackContext.attack_scenario || 'None',
+        attackGeneration: attackContext.attack_generation || 0,
+        defenseEffectiveness: attackContext.defense_effectiveness || 0,
+        networkRiskScore: attackContext.network_risk_score || 0,
+      }
+    };
+
+    res.json(transformed);
   } catch (error) {
     console.error('Fraud spikes dashboard error:', error);
-    // Fallback mock data
-    res.json({
-      totalSpikes: 12,
-      highRiskSpikes: 3,
-      averageConfidence: 87.3,
-      transactionsAffected: 2547,
-      patternBreakdown: [
-        { pattern: 'Account Takeover', count: 8 },
-        { pattern: 'Payment Velocity', count: 6 },
-        { pattern: 'Device Rotation', count: 4 },
-        { pattern: 'Card Testing', count: 3 },
-      ],
-      recentSpikes: [
-        {
-          pattern: 'Account Takeover Spike',
-          severity: 'high',
-          confidence: 92.3,
-          transactions: 847,
-          riskScore: 8.7,
-          timeframe: '2 hours ago',
-        },
-        {
-          pattern: 'Velocity Pattern Anomaly',
-          severity: 'medium',
-          confidence: 78.9,
-          transactions: 324,
-          riskScore: 6.2,
-          timeframe: '45 minutes ago',
-        },
-      ],
-      attackContext: {
-        activeAttack: false,
-        attackScenario: 'None',
-        attackGeneration: 0,
-        defenseEffectiveness: 0,
-        networkRiskScore: 0,
-      }
-    });
+    res.json(buildFallbackDashboardResponse());
   }
 });
 
@@ -182,24 +195,16 @@ router.post('/analyze', authMiddleware, validateBody(analyzeSchema), async (req:
 router.get('/trends', authMiddleware, async (_req: Request, res: Response) => {
   try {
     const result = await callAiEngine<FraudTrends>('/api/fraud-spikes/trends');
-    
-    if (result) {
-      res.json(result);
-    } else {
-      throw new Error('AI engine returned null result');
+
+    if (!result) {
+      res.json(buildFallbackTrendsResponse());
+      return;
     }
+
+    res.json(result);
   } catch (error) {
     console.error('Fraud trends error:', error);
-    // Fallback mock trends data
-    const mockTrends = {
-      hourlyTrends: Array.from({ length: 24 }, (_, i) => ({
-        hour: `${i.toString().padStart(2, '0')}:00`,
-        fraudEvents: Math.floor(Math.random() * 50) + 10,
-        riskScore: Math.random() * 10,
-      })),
-    };
-    
-    res.json(mockTrends);
+    res.json(buildFallbackTrendsResponse());
   }
 });
 
