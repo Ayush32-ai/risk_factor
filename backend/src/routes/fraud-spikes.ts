@@ -187,7 +187,8 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
     );
 
     if (hasLiveSimulationState) {
-      res.json(buildLiveFraudSpikeDashboard(simulation));
+      const liveDashboard = buildLiveFraudSpikeDashboard(simulation);
+      res.json(liveDashboard);
       return;
     }
 
