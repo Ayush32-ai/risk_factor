@@ -14,7 +14,11 @@ const simulateSchema = z.object({
   generation: z.number().int().min(1).max(100).default(1),
 });
 
-let currentSimulation = mockData.attackSimulation;
+export let currentSimulation = mockData.attackSimulation;
+
+export function getCurrentSimulation() {
+  return currentSimulation;
+}
 
 router.get('/current', authMiddleware, (_req: Request, res: Response) => {
   res.json({ simulation: currentSimulation });

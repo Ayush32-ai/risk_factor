@@ -4,6 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 import { validateBody } from '../middleware/validate';
 import { callAiEngine } from '../services/ai-client';
 import { logAuditEvent } from '../services/metrics';
+import { getCurrentSimulation } from './attacks';
 
 const router = Router();
 
@@ -172,27 +173,18 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
     const result = await callAiEngine<FraudSpikeDashboard>('/api/fraud-spikes/dashboard');
 
     if (!result) {
-      try {
-        const currentSimulationResponse = await fetch(`${process.env.AI_ENGINE_URL || 'http://localhost:8000'}/api/simulate/attack`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scenario: 'Distributed Account Network', generation: 1 }),
-          signal: AbortSignal.timeout(30000),
-        });
+      const currentSimulation = getCurrentSimulation();
+      const simulation = {
+        scenario: currentSimulation?.scenario,
+        generation: currentSimulation?.generation,
+        detection_rate: currentSimulation?.detection_rate,
+        blind_spot_discovered: currentSimulation?.blind_spot_discovered,
+        transactions_count: currentSimulation?.transactions_count,
+      };
 
-        if (currentSimulationResponse.ok) {
-          const simulation = await currentSimulationResponse.json() as {
-            scenario?: string;
-            generation?: number;
-            detection_rate?: number;
-            blind_spot_discovered?: boolean;
-            transactions_count?: number;
-          };
-          res.json(buildLiveFraudSpikeDashboard(simulation));
-          return;
-        }
-      } catch {
-        // Fall through to static fallback if live simulation is unavailable.
+      if (simulation.scenario || simulation.generation || simulation.detection_rate !== undefined || simulation.blind_spot_discovered) {
+        res.json(buildLiveFraudSpikeDashboard(simulation));
+        return;
       }
 
       res.json(buildFallbackDashboardResponse());
