@@ -55,6 +55,67 @@ interface AnalyzeResult {
   analysis_time: number;
 }
 
+export function buildLiveFraudSpikeDashboard(simulation: {
+  scenario?: string;
+  generation?: number;
+  detection_rate?: number;
+  blind_spot_discovered?: boolean;
+  transactions_count?: number;
+}) {
+  const detectionRate = simulation.detection_rate ?? 18;
+  const activeAttack = !!simulation.blind_spot_discovered || (simulation.generation ?? 0) > 0;
+  const scenario = simulation.scenario || 'Distributed Account Network';
+  const txCount = simulation.transactions_count ?? 42000;
+
+  const baseSpikes = [
+    {
+      pattern: 'Distributed Account Network',
+      severity: 'high' as const,
+      confidence: Math.min(99, 82 + (100 - detectionRate) / 2),
+      transactions: Math.max(300, Math.round(txCount * 0.12)),
+      timeframe: `Gen ${simulation.generation ?? 1} momentum`,
+      riskScore: 8.8 + Math.min(1.8, (100 - detectionRate) / 30),
+    },
+    {
+      pattern: 'Credential Stuffing Burst',
+      severity: 'medium' as const,
+      confidence: Math.min(96, 72 + (100 - detectionRate) / 3),
+      transactions: Math.max(180, Math.round(txCount * 0.07)),
+      timeframe: 'Within last 20 min',
+      riskScore: 7.2 + Math.min(1.4, (100 - detectionRate) / 40),
+    },
+    {
+      pattern: 'Device Rotation Cluster',
+      severity: 'high' as const,
+      confidence: Math.min(97, 76 + (100 - detectionRate) / 2.5),
+      transactions: Math.max(220, Math.round(txCount * 0.09)),
+      timeframe: 'Within last 35 min',
+      riskScore: 8.3 + Math.min(1.7, (100 - detectionRate) / 35),
+    },
+  ];
+
+  return {
+    totalSpikes: Math.max(3, Math.round(baseSpikes.length + (100 - detectionRate) / 3)),
+    highRiskSpikes: Math.max(2, Math.round(baseSpikes.filter((spike) => spike.severity === 'high').length + (simulation.blind_spot_discovered ? 1 : 0))),
+    averageConfidence: Number((baseSpikes.reduce((sum, spike) => sum + spike.confidence, 0) / baseSpikes.length).toFixed(1)),
+    transactionsAffected: Math.max(700, Math.round(txCount * 0.18)),
+    patternBreakdown: [
+      { pattern: 'Account Takeover', count: 8 },
+      { pattern: 'Payment Velocity', count: 6 },
+      { pattern: 'Device Rotation', count: 5 },
+      { pattern: 'Card Testing', count: 4 },
+    ],
+    recentSpikes: baseSpikes,
+    attackContext: {
+      activeAttack,
+      attackScenario: activeAttack ? scenario : 'None',
+      attackGeneration: simulation.generation ?? 0,
+      defenseEffectiveness: activeAttack ? Math.max(58, 100 - detectionRate) : 0,
+      networkRiskScore: Number(Math.max(0.45, Math.min(0.98, (100 - detectionRate) / 100)).toFixed(2)),
+    },
+  };
+}
+
 export function buildFallbackDashboardResponse() {
   return {
     totalSpikes: 12,
@@ -111,6 +172,29 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
     const result = await callAiEngine<FraudSpikeDashboard>('/api/fraud-spikes/dashboard');
 
     if (!result) {
+      try {
+        const currentSimulationResponse = await fetch(`${process.env.AI_ENGINE_URL || 'http://localhost:8000'}/api/simulate/attack`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: 'Distributed Account Network', generation: 1 }),
+          signal: AbortSignal.timeout(30000),
+        });
+
+        if (currentSimulationResponse.ok) {
+          const simulation = await currentSimulationResponse.json() as {
+            scenario?: string;
+            generation?: number;
+            detection_rate?: number;
+            blind_spot_discovered?: boolean;
+            transactions_count?: number;
+          };
+          res.json(buildLiveFraudSpikeDashboard(simulation));
+          return;
+        }
+      } catch {
+        // Fall through to static fallback if live simulation is unavailable.
+      }
+
       res.json(buildFallbackDashboardResponse());
       return;
     }
