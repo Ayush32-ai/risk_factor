@@ -34,12 +34,26 @@ export default function AttacksPage() {
 
   const startMutation = useMutation({
     mutationFn: () => api.startAttack({ scenario: selectedScenario, generation: 1 }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attack-simulation'] }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['attack-simulation'] }),
+        queryClient.invalidateQueries({ queryKey: ['graph'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-spikes-dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-trends'] }),
+      ]);
+    },
   });
 
   const evolveMutation = useMutation({
     mutationFn: () => api.evolveAttack(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attack-simulation'] }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['attack-simulation'] }),
+        queryClient.invalidateQueries({ queryKey: ['graph'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-spikes-dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-trends'] }),
+      ]);
+    },
   });
 
   const sim = data?.simulation as Record<string, unknown> | undefined;

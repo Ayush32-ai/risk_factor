@@ -29,6 +29,7 @@ import { MetricCard } from '@/components/ui/metric-card';
 import { useState } from 'react';
 
 import { api } from '@/lib/api';
+import { useWebSocket } from '@/hooks/use-websocket';
 
 // Custom label component for multi-line text
 const CustomLabel = (props: any) => {
@@ -107,6 +108,14 @@ interface DashboardSummary {
 export default function FraudSpikesPage() {
   const [selectedTimeframe, setSelectedTimeframe] = useState(60);
   const queryClient = useQueryClient();
+  const wsBase = (process.env.NEXT_PUBLIC_API_URL || 'https://risk-factor-500.onrender.com').replace(/^http/, 'ws');
+
+  useWebSocket(`${wsBase}/ws`, {
+    onMessage: () => {
+      queryClient.invalidateQueries({ queryKey: ['fraud-spikes-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['fraud-trends'] });
+    },
+  });
 
   const { data: dashboard, isLoading: dashboardLoading, refetch: refetchDashboard } = useQuery<DashboardSummary>({
     queryKey: ['fraud-spikes-dashboard'],

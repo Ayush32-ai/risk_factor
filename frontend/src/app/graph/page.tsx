@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ReactFlow,
   Background,
@@ -21,6 +21,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Icon, ClientOnly } from '@/components/client-only';
 import { AuthGuard } from '@/components/auth-guard';
 import { api } from '@/lib/api';
+import { useWebSocket } from '@/hooks/use-websocket';
 import { getRiskColor } from '@/lib/utils';
 
 interface GraphNodeData {
@@ -112,9 +113,17 @@ const getNodePosition = (nodeId: string, index: number) => {
 };
 
 export default function GraphPage() {
+  const queryClient = useQueryClient();
   const [selectedNode, setSelectedNode] = useState<SelectedNodeData | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
+  const wsBase = (process.env.NEXT_PUBLIC_API_URL || 'https://risk-factor-500.onrender.com').replace(/^http/, 'ws');
+  useWebSocket(`${wsBase}/ws`, {
+    onMessage: () => {
+      queryClient.invalidateQueries({ queryKey: ['graph'] });
+    },
+  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['graph'],
