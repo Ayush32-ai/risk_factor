@@ -35,7 +35,8 @@ export default function AuditPage() {
   });
 
   // Real-time WebSocket connection (temporarily disabled)
-  const { isConnected } = useWebSocket('ws://localhost:4000/ws', {
+  const wsBase = (process.env.NEXT_PUBLIC_API_URL || 'https://risk-factor-500.onrender.com').replace(/^http/, 'ws');
+  const { isConnected } = useWebSocket(`${wsBase}/ws`, {
     onMessage: (message) => {
       if (message.type === 'audit_event' || message.type === 'security_event') {
         // Add new real-time event

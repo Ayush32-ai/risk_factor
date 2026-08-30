@@ -29,7 +29,8 @@ export default function InvestigatePage() {
   });
 
   // Real-time WebSocket connection
-  const { isConnected } = useWebSocket('ws://localhost:4000/ws', {
+  const wsBase = (process.env.NEXT_PUBLIC_API_URL || 'https://risk-factor-500.onrender.com').replace(/^http/, 'ws');
+  const { isConnected } = useWebSocket(`${wsBase}/ws`, {
     onMessage: (message) => {
       if (message.type === 'investigation_update') {
         setRealtimeUpdates(prev => [message.payload, ...prev].slice(0, 5));

@@ -13,6 +13,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://risk-factor-500.onrender.com';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Debug: Test backend connectivity first
       console.log('🔍 Testing backend connectivity...');
-      const healthResponse = await fetch('http://localhost:4000/health');
+      const healthResponse = await fetch(`${API_URL}/health`);
       console.log('🏥 Health check:', healthResponse.status, await healthResponse.text());
       
       console.log('🔑 Attempting login with:', email);
