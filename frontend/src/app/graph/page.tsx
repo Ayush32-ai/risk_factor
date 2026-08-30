@@ -76,7 +76,7 @@ function CustomNode({ data }: { data: Record<string, unknown> }) {
         className="!bg-sentinel-muted !w-2 !h-2 !border-2 !border-white" 
       />
       <p className="text-xs text-sentinel-muted uppercase font-medium">{type}</p>
-      <p className="font-semibold text-sm mt-0.5 text-white">{label}</p>
+      <p className="font-semibold text-sm mt-0.5 text-gray-900">{label}</p>
       <p className={`text-xs font-mono mt-1 font-bold ${getRiskColor(riskScore)}`}>
         Risk: {riskScore}/100
       </p>
@@ -223,28 +223,28 @@ export default function GraphPage() {
             <p className="text-sentinel-muted mt-1">Neo4j-powered payment network visualization · Click a node for risk profile · {data ? `${data.nodes.length} nodes, ${data.edges.length} edges` : 'Loading...'}</p>
           </div>
 
-          <div className="sentinel-card bg-red-500/5 border-red-500/20 p-4">
+          <div className="sentinel-card bg-red-50 border-red-200 p-4 shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="text-red-400 text-lg">⚠️</div>
+              <div className="text-red-600 text-lg">⚠️</div>
               <div>
-                <h3 className="font-semibold text-red-300 mb-2">Critical Fraud Network Detected</h3>
-                <p className="text-sm text-red-200 leading-relaxed mb-3">
+                <h3 className="font-semibold text-red-700 mb-2">Critical Fraud Network Detected</h3>
+                <p className="text-sm text-red-700 leading-relaxed mb-3">
                   This network shows characteristics of organized fraud: <strong>7 accounts sharing a single device fingerprint</strong>, 
                   abnormal transaction timing patterns, and <strong>refund destinations that overlap with payment sources</strong>. 
                   The network's structure and behavior patterns indicate coordinated activity rather than legitimate independent users.
                 </p>
                 <div className="grid grid-cols-3 gap-4 text-xs">
                   <div>
-                    <p className="text-red-300 font-medium">Shared Device</p>
-                    <p className="text-red-200">7 accounts, 1 device</p>
+                    <p className="text-red-700 font-medium">Shared Device</p>
+                    <p className="text-red-600">7 accounts, 1 device</p>
                   </div>
                   <div>
-                    <p className="text-red-300 font-medium">Transaction Velocity</p>
-                    <p className="text-red-200">4.7× baseline rate</p>
+                    <p className="text-red-700 font-medium">Transaction Velocity</p>
+                    <p className="text-red-600">4.7× baseline rate</p>
                   </div>
                   <div>
-                    <p className="text-red-300 font-medium">Refund Overlap</p>
-                    <p className="text-red-200">Circular pattern detected</p>
+                    <p className="text-red-700 font-medium">Refund Overlap</p>
+                    <p className="text-red-600">Circular pattern detected</p>
                   </div>
                 </div>
               </div>
@@ -315,16 +315,16 @@ export default function GraphPage() {
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="font-semibold text-white">Network Risk Analysis</h3>
+                      <h3 className="font-semibold text-gray-900">Network Risk Analysis</h3>
                       <p className="text-xs text-sentinel-muted">Real-time fraud detection</p>
                     </div>
-                    <button onClick={() => setSelectedNode(null)} className="text-sentinel-muted hover:text-white">
+                    <button onClick={() => setSelectedNode(null)} className="text-sentinel-muted hover:text-gray-900">
                       <Icon icon={X} className="w-4 h-4" fallbackClassName="w-4 h-4 bg-gray-500 rounded" />
                     </button>
                   </div>
                   
                   <div className="mb-4">
-                    <p className="text-lg font-bold text-white mb-1">{selectedNode.label}</p>
+                    <p className="text-lg font-bold text-gray-900 mb-1">{selectedNode.label}</p>
                     <div className="flex items-center gap-3 mb-3">
                       <div className={`text-3xl font-mono font-black ${getRiskColor(selectedNode.riskScore ?? 0)}`}>
                         {selectedNode.riskScore ?? 0}/100
@@ -345,7 +345,7 @@ export default function GraphPage() {
                   {selectedNode.riskProfile?.factors && selectedNode.riskProfile.factors.length > 0 && (
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                           🚨 WHY IS THIS RISKY?
                         </h4>
                         <div className="space-y-2">
@@ -358,15 +358,15 @@ export default function GraphPage() {
                       </div>
                       
                       <div className="border-t border-sentinel-border pt-4">
-                        <h4 className="text-sm font-semibold text-white mb-2">Network Analysis</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Network Analysis</h4>
                         <div className="grid grid-cols-2 gap-3 text-xs">
                           <div>
                             <p className="text-sentinel-muted">Fraud Type</p>
-                            <p className="text-white font-medium">Coordinated Network</p>
+                            <p className="text-gray-900 font-medium">Coordinated Network</p>
                           </div>
                           <div>
                             <p className="text-sentinel-muted">Cluster Size</p>
-                            <p className="text-white font-medium">7 entities</p>
+                            <p className="text-gray-900 font-medium">7 entities</p>
                           </div>
                           <div>
                             <p className="text-sentinel-muted">Confidence</p>
@@ -382,8 +382,8 @@ export default function GraphPage() {
                         </div>
                       </div>
                       
-                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                        <p className="text-xs text-blue-200">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-xs text-blue-800">
                           <strong>AI Assessment:</strong> This entity is part of a coordinated transaction network 
                           exploiting individual-transaction evaluation blind spots. Evidence includes shared device 
                           fingerprints, abnormal transaction timing, and suspicious refund patterns.

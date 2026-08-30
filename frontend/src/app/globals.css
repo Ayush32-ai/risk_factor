@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,70 +6,201 @@
 
 @layer base {
   * {
-    @apply border-sentinel-border;
+    @apply border-gray-200;
   }
   body {
-    @apply bg-sentinel-bg text-white font-sans antialiased;
+    @apply bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-900 font-sans antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+  
+  /* Enhanced text rendering */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 font-semibold;
+    letter-spacing: -0.025em;
+  }
+  
+  /* Smooth transitions for all interactive elements */
+  button, a, input, select, textarea {
+    @apply transition-all duration-200;
   }
 }
 
 @layer components {
+  /* Modern Razorpay theme - consistent across all pages */
+  .razorpay-page {
+    @apply min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50;
+  }
+  
+  .razorpay-header {
+    @apply bg-white/70 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-10;
+  }
+  
+  .razorpay-card {
+    @apply bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl hover:shadow-xl transition-all duration-200;
+  }
+  
+  .razorpay-metric-card {
+    @apply bg-white/80 backdrop-blur-sm border-2 border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200;
+  }
+  
+  .razorpay-gradient-text {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+  
+  .razorpay-button-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2;
+  }
+  
+  .razorpay-button-secondary {
+    @apply bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2;
+  }
+  
+  .razorpay-input {
+    @apply w-full bg-white/80 border-2 border-gray-200 rounded-lg px-4 py-3 font-medium text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200;
+  }
+  
+  .razorpay-select {
+    @apply w-full bg-white/90 border-2 border-gray-200 rounded-lg px-4 py-3 font-medium text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200;
+  }
+  
+  .razorpay-badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+  .razorpay-badge-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200;
+  }
+  .razorpay-badge-danger {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200;
+  }
+  .razorpay-badge-info {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200;
+  }
+  
+  /* Icon containers with gradients */
+  .razorpay-icon-primary {
+    @apply p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg;
+  }
+  .razorpay-icon-success {
+    @apply p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg;
+  }
+  .razorpay-icon-warning {
+    @apply p-2 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg;
+  }
+  .razorpay-icon-danger {
+    @apply p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg;
+  }
+  
+  /* Enhanced form styling */
+  .razorpay-form-group {
+    @apply space-y-2;
+  }
+  .razorpay-label {
+    @apply block text-sm font-semibold text-gray-700;
+  }
+  .razorpay-help-text {
+    @apply text-xs text-gray-600 mt-1;
+  }
+  
+  /* Status indicators */
+  .razorpay-status-online {
+    @apply flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 border-2 border-emerald-200;
+  }
+  .razorpay-status-offline {
+    @apply flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-500 border-2 border-gray-200;
+  }
+
+  /* Legacy sentinel theme - keep for backward compatibility */
   .sentinel-card {
-    @apply bg-sentinel-surface border border-sentinel-border rounded-lg p-6;
+    @apply bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6;
   }
   .sentinel-metric {
-    @apply text-3xl font-bold font-mono tracking-tight;
+    @apply text-3xl font-bold font-mono tracking-tight text-gray-900;
   }
   .sentinel-label {
-    @apply text-sm text-sentinel-muted uppercase tracking-wider;
+    @apply text-sm text-gray-600 uppercase tracking-wider font-medium;
+  }
+  .sentinel-muted {
+    @apply text-gray-600;
   }
   .sentinel-badge-critical {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200;
   }
   .sentinel-badge-high {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200;
   }
   .sentinel-badge-success {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200;
   }
   .sentinel-nav-item {
     @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
   }
   .sentinel-nav-active {
-    @apply bg-blue-500/10 text-blue-400 border border-blue-500/20;
+    @apply bg-blue-500/10 text-blue-600 border border-blue-200;
   }
   .sentinel-nav-inactive {
-    @apply text-sentinel-muted hover:text-white hover:bg-white/5;
+    @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50;
   }
 }
 
-/* React Flow overrides */
+/* Enhanced chart tooltips */
+.recharts-tooltip-wrapper {
+  @apply drop-shadow-xl;
+}
+
+/* React Flow overrides for light theme */
 .react-flow__node {
   font-family: 'Inter', sans-serif;
+  @apply bg-white border-gray-200 shadow-lg;
 }
 .react-flow__edge-path {
-  stroke: #334155;
+  stroke: #64748b;
   stroke-width: 2;
 }
 .react-flow__controls {
-  background: #111827 !important;
-  border: 1px solid #1e293b !important;
+  @apply bg-white border border-gray-200 shadow-lg;
   border-radius: 8px !important;
 }
 .react-flow__controls-button {
-  background: #111827 !important;
-  border-bottom: 1px solid #1e293b !important;
-  fill: #94a3b8 !important;
+  @apply bg-white border-b border-gray-200 text-gray-700 hover:bg-gray-50;
 }
 
-/* Scrollbar */
+/* Custom scrollbar for light theme */
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0e17;
+  @apply bg-gray-100;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  @apply bg-gray-300 hover:bg-gray-400;
   border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Smooth animations for page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+/* Enhanced focus styles for accessibility */
+*:focus-visible {
+  @apply ring-2 ring-blue-500 ring-offset-2 outline-none;
+}
+
+/* Print styles */
+@media print {
+  .razorpay-page {
+    @apply bg-white;
+  }
+  .razorpay-card {
+    @apply bg-white border border-gray-300 shadow-none;
+  }
 }

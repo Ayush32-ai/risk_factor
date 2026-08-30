@@ -7,14 +7,14 @@ const config: Config = {
     extend: {
       colors: {
         sentinel: {
-          bg: '#0a0e17',
-          surface: '#111827',
-          border: '#1e293b',
-          accent: '#3b82f6',
-          danger: '#ef4444',
-          warning: '#f59e0b',
-          success: '#10b981',
-          muted: '#64748b',
+          bg: '#f8fafc',
+          surface: '#ffffff',
+          border: '#e2e8f0',
+          accent: '#2563eb',
+          danger: '#dc2626',
+          warning: '#d97706',
+          success: '#059669',
+          muted: '#475569',
         },
       },
       fontFamily: {

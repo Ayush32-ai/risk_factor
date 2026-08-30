@@ -22,11 +22,25 @@ export function MetricCard({
   variant = 'default',
   delay = 0,
 }: MetricCardProps) {
-  const valueColor = {
-    default: 'text-white',
-    danger: 'text-red-400',
-    success: 'text-emerald-400',
-    warning: 'text-amber-400',
+  const cardColors = {
+    default: 'bg-white border-gray-200',
+    danger: 'bg-white border-red-200',
+    success: 'bg-white border-green-200',
+    warning: 'bg-white border-yellow-200',
+  }[variant];
+
+  const valueColors = {
+    default: 'text-gray-900',
+    danger: 'text-red-600',
+    success: 'text-green-600',
+    warning: 'text-yellow-600',
+  }[variant];
+
+  const iconColors = {
+    default: 'text-blue-600 bg-blue-50',
+    danger: 'text-red-600 bg-red-50',
+    success: 'text-green-600 bg-green-50',
+    warning: 'text-yellow-600 bg-yellow-50',
   }[variant];
 
   return (
@@ -34,19 +48,19 @@ export function MetricCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="sentinel-card group hover:border-blue-500/30 transition-colors"
+      className={cn('p-6 rounded-xl border shadow-sm hover:shadow-md transition-all', cardColors)}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="sentinel-label mb-2">{label}</p>
-          <p className={cn('sentinel-metric', valueColor)}>
+          <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
+          <p className={cn('text-2xl font-bold tracking-tight', valueColors)}>
             {value}
             {suffix && <span className="text-lg ml-1">{suffix}</span>}
           </p>
         </div>
         {Icon && (
-          <div className="p-2 rounded-lg bg-white/5 group-hover:bg-blue-500/10 transition-colors">
-            <Icon className="w-5 h-5 text-sentinel-muted group-hover:text-blue-400 transition-colors" />
+          <div className={cn('p-3 rounded-lg', iconColors)}>
+            <Icon className="w-5 h-5" />
           </div>
         )}
       </div>

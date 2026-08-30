@@ -10,6 +10,8 @@ import {
   Target,
   Ban,
   Radio,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -19,10 +21,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Icon } from '@/components/client-only';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { AuthGuard } from '@/components/auth-guard';
-import { ClientOnly } from '@/components/client-only';
 import { MetricCard } from '@/components/ui/metric-card';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { api } from '@/lib/api';
@@ -39,11 +39,10 @@ const chartData = [
 ];
 
 export default function OverviewPage() {
-  const queryClient = useQueryClient();
   const [realtimeActivity, setRealtimeActivity] = useState<Array<Record<string, string>>>([]);
   const [liveMetrics, setLiveMetrics] = useState<Record<string, number>>({});
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['overview'],
     queryFn: () => api.getOverview(),
     refetchInterval: 15000, // Refetch every 15 seconds
@@ -110,137 +109,187 @@ export default function OverviewPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Executive Risk Overview</h1>
-            <p className="text-sentinel-muted mt-1">Real-time security posture and risk intelligence</p>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <Icon icon={Radio} className={`w-3 h-3 ${isConnected ? 'text-emerald-400 animate-pulse' : 'text-gray-400'}`} fallbackClassName="w-3 h-3 bg-emerald-500 rounded" />
-            <span className={`text-sm font-medium ${isConnected ? 'text-emerald-400' : 'text-gray-400'}`}>
-              {isConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <MetricCard
-            label="Risk Model Health"
-            value={metrics?.modelHealth?.toFixed(1) ?? '—'}
-            suffix="%"
-            icon={Shield}
-            variant="success"
-            delay={0}
-          />
-          <MetricCard
-            label="Transactions Tested"
-            value={metrics ? formatNumber(metrics.transactionsTested) : '—'}
-            icon={Activity}
-            delay={0.1}
-          />
-          <MetricCard
-            label="Blind Spots Found"
-            value={metrics?.blindSpotsFound ?? '—'}
-            icon={AlertTriangle}
-            variant="warning"
-            delay={0.2}
-          />
-          <MetricCard
-            label="Critical Vulnerabilities"
-            value={metrics?.criticalVulnerabilities ?? '—'}
-            icon={Target}
-            variant="danger"
-            delay={0.3}
-          />
-          <MetricCard
-            label="Attacks Blocked"
-            value={metrics?.attacksBlocked?.toFixed(1) ?? '—'}
-            suffix="%"
-            icon={Ban}
-            variant="success"
-            delay={0.4}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="lg:col-span-2 sentinel-card"
-          >
-            <h2 className="text-lg font-semibold mb-4">Risk Activity Timeline</h2>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="blockGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} />
-                <Tooltip
-                  contentStyle={{
-                    background: '#111827',
-                    border: '1px solid #1e293b',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Area type="monotone" dataKey="risk" stroke="#ef4444" fill="url(#riskGrad)" name="Risk Events" />
-                <Area type="monotone" dataKey="blocked" stroke="#3b82f6" fill="url(#blockGrad)" name="Blocked" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="sentinel-card"
-          >
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              Recent Activity
-              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></span>
-            </h2>
-            <div className="space-y-3 max-h-[280px] overflow-y-auto">
-              {isLoading && allActivity.length === 0 ? (
-                <p className="text-sentinel-muted text-sm">Loading...</p>
-              ) : (
-                allActivity.slice(0, 8).map((event, i) => (
-                  <motion.div
-                    key={`${event.timestamp}-${i}`}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className={`flex gap-3 text-sm p-2 rounded ${
-                      realtimeActivity.includes(event) ? 'bg-green-500/5 border-l-2 border-l-green-500' : ''
-                    }`}
-                  >
-                    <span className="text-sentinel-muted font-mono shrink-0 text-xs">
-                      {formatTime(event.timestamp)}
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+          {/* Header */}
+          <div className="bg-white/70 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-10">
+            <div className="p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Executive Overview
+                  </h1>
+                  <p className="text-gray-600 mt-1">Real-time security posture and risk intelligence</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${
+                    isConnected 
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                      : 'bg-gray-50 text-gray-500 border-gray-200'
+                  }`}>
+                    <Radio className={`w-4 h-4 ${isConnected ? 'text-emerald-600 animate-pulse' : 'text-gray-400'}`} />
+                    <span className="text-sm font-semibold">
+                      {isConnected ? 'LIVE' : 'OFFLINE'}
                     </span>
-                    <div className="flex-1">
-                      <p className="text-white/90">{event.description}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-sentinel-muted text-xs">{event.actor}</p>
-                        {realtimeActivity.includes(event) && (
-                          <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs">LIVE</span>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))
-              )}
+                  </div>
+                  <button
+                    onClick={() => refetch()}
+                    disabled={isLoading}
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-semibold"
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                    <span>Refresh</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          </motion.div>
+          </div>
+
+          <div className="p-6 space-y-8">
+            {/* Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <MetricCard
+                label="Risk Model Health"
+                value={metrics?.modelHealth?.toFixed(1) ?? '—'}
+                suffix="%"
+                icon={Shield}
+                variant="success"
+                delay={0}
+              />
+              <MetricCard
+                label="Transactions Tested"
+                value={metrics ? formatNumber(metrics.transactionsTested) : '—'}
+                icon={Activity}
+                delay={0.1}
+              />
+              <MetricCard
+                label="Blind Spots Found"
+                value={metrics?.blindSpotsFound ?? '—'}
+                icon={AlertTriangle}
+                variant="warning"
+                delay={0.2}
+              />
+              <MetricCard
+                label="Critical Vulnerabilities"
+                value={metrics?.criticalVulnerabilities ?? '—'}
+                icon={Target}
+                variant="danger"
+                delay={0.3}
+              />
+              <MetricCard
+                label="Attacks Blocked"
+                value={metrics?.attacksBlocked?.toFixed(1) ?? '—'}
+                suffix="%"
+                icon={Ban}
+                variant="success"
+                delay={0.4}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Risk Activity Timeline */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="lg:col-span-2 bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">Risk Activity Timeline</h2>
+                </div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="blockGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
+                    <YAxis stroke="#64748b" fontSize={12} />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                      }}
+                    />
+                    <Area type="monotone" dataKey="risk" stroke="#ef4444" fill="url(#riskGrad)" name="Risk Events" strokeWidth={3} />
+                    <Area type="monotone" dataKey="blocked" stroke="#3b82f6" fill="url(#blockGrad)" name="Blocked" strokeWidth={3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </motion.div>
+
+              {/* Recent Activity */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    Recent Activity
+                    <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'}`}></span>
+                  </h2>
+                </div>
+                <div className="space-y-4 max-h-[280px] overflow-y-auto">
+                  {isLoading && allActivity.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-400 mx-auto mb-4" />
+                      <p className="text-gray-600 text-sm">Loading activity...</p>
+                    </div>
+                  ) : (
+                    allActivity.slice(0, 8).map((event, i) => (
+                      <motion.div
+                        key={`${event.timestamp}-${i}`}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                          realtimeActivity.includes(event) 
+                            ? 'bg-emerald-50 border-emerald-200' 
+                            : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 leading-relaxed">
+                              {event.description}
+                            </p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-xs text-gray-600 font-mono">
+                                {formatTime(event.timestamp)}
+                              </span>
+                              <span className="text-xs font-semibold text-blue-600">
+                                {event.actor}
+                              </span>
+                              {realtimeActivity.includes(event) && (
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">
+                                  LIVE
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          </div>
         </div>
-      </div>
       </DashboardLayout>
     </AuthGuard>
   );

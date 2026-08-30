@@ -308,25 +308,25 @@ export default function DefensePage() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="sentinel-card"
+            className="bg-white border border-sentinel-border rounded-xl shadow-sm p-5"
           >
-            <h3 className="text-lg font-semibold mb-4">Defense Generation History</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4 text-blue-900">Defense Generation History</h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {historyData.history.slice(-10).reverse().map((entry: any, i: number) => (
-                <div key={i} className="p-3 rounded border border-sentinel-border bg-white/[0.01]">
-                  <div className="flex justify-between items-start">
+                <div key={i} className="p-3 rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <div className="flex justify-between items-start gap-3">
                     <div>
-                      <p className="text-sm font-medium">{entry.attackPattern?.replace(/_/g, ' ') || 'General'}</p>
-                      <p className="text-xs text-sentinel-muted">
+                      <p className="text-sm font-semibold text-blue-900">{entry.attackPattern?.replace(/_/g, ' ') || 'General'}</p>
+                      <p className="text-xs text-slate-600">
                         {entry.improvement || 0}% improvement • {entry.generatedRules?.length || 0} rules
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-sentinel-muted">
+                      <p className="text-xs text-slate-500">
                         {new Date(entry.timestamp).toLocaleTimeString()}
                       </p>
                       {entry.approved && (
-                        <span className="text-xs text-emerald-400">✓ Deployed</span>
+                        <span className="text-xs text-emerald-600 font-medium">✓ Deployed</span>
                       )}
                     </div>
                   </div>

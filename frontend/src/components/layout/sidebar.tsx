@@ -46,15 +46,15 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-sentinel-surface border-r border-sentinel-border flex flex-col z-50">
-      <div className="p-6 border-b border-sentinel-border">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-white/80 backdrop-blur-sm border-r border-gray-200/50 flex flex-col z-50 shadow-lg overflow-y-auto">
+      <div className="p-6 border-b border-gray-200/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <Icon icon={Shield} className="w-5 h-5 text-blue-400" fallbackClassName="w-5 h-5 bg-blue-500 rounded" />
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
+            <Icon icon={Shield} className="w-5 h-5 text-white" fallbackClassName="w-5 h-5 bg-white rounded" />
           </div>
           <div>
-            <h1 className="font-bold text-sm tracking-wide">RAZORPAY SENTINEL</h1>
-            <p className="text-xs text-sentinel-muted">Security Intelligence</p>
+            <h1 className="font-bold text-sm tracking-wide text-gray-900">RAZORPAY SENTINEL</h1>
+            <p className="text-xs text-gray-600">Security Intelligence</p>
           </div>
         </div>
       </div>
@@ -67,8 +67,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'sentinel-nav-item',
-                isActive ? 'sentinel-nav-active' : 'sentinel-nav-inactive'
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                isActive 
+                  ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50 hover:shadow-sm'
               )}
             >
               <Icon icon={item.icon} className="w-4 h-4" fallbackClassName="w-4 h-4 bg-gray-500 rounded" />
@@ -78,8 +80,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sentinel-border space-y-3">
-        <div className="flex items-center gap-2 text-xs text-sentinel-muted">
+      <div className="p-4 border-t border-gray-200/50 space-y-3">
+        <div className="flex items-center gap-2 text-xs text-gray-600">
           <Icon 
             icon={Radio} 
             className="w-3 h-3 text-emerald-400 animate-pulse" 
@@ -91,7 +93,7 @@ export function Sidebar() {
         
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors border border-red-500/20 hover:border-red-500/30"
+          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200/50 hover:border-red-300 hover:shadow-sm"
         >
           <Icon icon={LogOut} className="w-4 h-4" fallbackClassName="w-4 h-4 bg-red-500 rounded" />
           <span>Logout</span>
