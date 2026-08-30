@@ -25,7 +25,13 @@ const server = createServer(app);
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ 
-  origin: [config.corsOrigin, 'http://localhost:3001', 'http://127.0.0.1:3001'],
+  origin: [
+    config.corsOrigin,
+    'https://risk-factor400.onrender.com',
+    'https://risk-factor-500.onrender.com',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001'
+  ],
   credentials: true 
 }));
 app.use(express.json());
