@@ -118,6 +118,7 @@ export default function GraphPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['graph'],
+    refetchInterval: 15000,
     queryFn: async () => {
       console.log('Fetching graph data...');
       const result = await api.getGraph();
