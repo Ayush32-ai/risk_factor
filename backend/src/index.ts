@@ -23,16 +23,21 @@ import mlEvaluationRoutes from './routes/ml-evaluation';
 const app = express();
 const server = createServer(app);
 
+const allowedOrigins = new Set(config.corsOrigins);
+
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ 
-  origin: [
-    config.corsOrigin,
-    'https://risk-factor400.onrender.com',
-    'https://risk-factor-500.onrender.com',
-    'http://localhost:3001',
-    'http://127.0.0.1:3001'
-  ],
-  credentials: true 
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 app.use(express.json());
 app.use(rateLimit({ windowMs: 60_000, max: 200 }));

@@ -1,11 +1,23 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const parsedCorsOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   jwtSecret: process.env.JWT_SECRET || 'sentinel-dev-jwt-secret',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  corsOrigin: parsedCorsOrigins[0] || 'http://localhost:3001',
+  corsOrigins: [
+    ...parsedCorsOrigins,
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'https://risk-factor400.onrender.com',
+    'https://risk-factor-500.onrender.com',
+  ],
   databaseUrl: process.env.DATABASE_URL || 'postgresql://sentinel:sentinel_dev@localhost:5432/sentinel',
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   neo4j: {
