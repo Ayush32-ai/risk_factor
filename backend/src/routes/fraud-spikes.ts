@@ -170,23 +170,30 @@ export function buildFallbackTrendsResponse() {
 // Dashboard endpoint
 router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) => {
   try {
+    const currentSimulation = getCurrentSimulation();
+    const simulation = {
+      scenario: currentSimulation?.scenario,
+      generation: currentSimulation?.generation,
+      detection_rate: currentSimulation?.detection_rate,
+      blind_spot_discovered: currentSimulation?.blind_spot_discovered,
+      transactions_count: currentSimulation?.transactions_count,
+    };
+
+    const hasLiveSimulationState = !!(
+      simulation.scenario ||
+      simulation.generation ||
+      simulation.detection_rate !== undefined ||
+      simulation.blind_spot_discovered
+    );
+
+    if (hasLiveSimulationState) {
+      res.json(buildLiveFraudSpikeDashboard(simulation));
+      return;
+    }
+
     const result = await callAiEngine<FraudSpikeDashboard>('/api/fraud-spikes/dashboard');
 
     if (!result) {
-      const currentSimulation = getCurrentSimulation();
-      const simulation = {
-        scenario: currentSimulation?.scenario,
-        generation: currentSimulation?.generation,
-        detection_rate: currentSimulation?.detection_rate,
-        blind_spot_discovered: currentSimulation?.blind_spot_discovered,
-        transactions_count: currentSimulation?.transactions_count,
-      };
-
-      if (simulation.scenario || simulation.generation || simulation.detection_rate !== undefined || simulation.blind_spot_discovered) {
-        res.json(buildLiveFraudSpikeDashboard(simulation));
-        return;
-      }
-
       res.json(buildFallbackDashboardResponse());
       return;
     }

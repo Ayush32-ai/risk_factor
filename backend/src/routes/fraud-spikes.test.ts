@@ -25,6 +25,7 @@ test('live dashboard reflects the active attack simulation', () => {
   assert.ok(dashboard.totalSpikes > 0);
   assert.ok(Array.isArray(dashboard.recentSpikes));
   assert.ok(dashboard.recentSpikes.length > 0);
+  assert.ok(dashboard.recentSpikes[0].timeframe.includes('Gen') || dashboard.recentSpikes[0].timeframe.includes('minutes'));
 });
 
 test('trends fallback returns hourly data when AI engine is unavailable', () => {
