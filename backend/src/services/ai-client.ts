@@ -54,7 +54,7 @@ export async function getGraphData() {
   const result = await callAiEngine<{ nodes: unknown[]; edges: unknown[] }>(
     '/api/graph/network'
   );
-  return result ?? { nodes: mockData.graphNodes, edges: mockData.graphEdges };
+  return result ?? { nodes: [], edges: [] };
 }
 
 export async function getInvestigation(networkId: string) {

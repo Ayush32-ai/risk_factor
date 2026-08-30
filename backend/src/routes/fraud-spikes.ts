@@ -119,34 +119,12 @@ export function buildLiveFraudSpikeDashboard(simulation: {
 
 export function buildFallbackDashboardResponse() {
   return {
-    totalSpikes: 12,
-    highRiskSpikes: 3,
-    averageConfidence: 87.3,
-    transactionsAffected: 2547,
-    patternBreakdown: [
-      { pattern: 'Account Takeover', count: 8 },
-      { pattern: 'Payment Velocity', count: 6 },
-      { pattern: 'Device Rotation', count: 4 },
-      { pattern: 'Card Testing', count: 3 },
-    ],
-    recentSpikes: [
-      {
-        pattern: 'Account Takeover Spike',
-        severity: 'high',
-        confidence: 92.3,
-        transactions: 847,
-        riskScore: 8.7,
-        timeframe: '2 hours ago',
-      },
-      {
-        pattern: 'Velocity Pattern Anomaly',
-        severity: 'medium',
-        confidence: 78.9,
-        transactions: 324,
-        riskScore: 6.2,
-        timeframe: '45 minutes ago',
-      },
-    ],
+    totalSpikes: 0,
+    highRiskSpikes: 0,
+    averageConfidence: 0,
+    transactionsAffected: 0,
+    patternBreakdown: [],
+    recentSpikes: [],
     attackContext: {
       activeAttack: false,
       attackScenario: 'None',
@@ -161,8 +139,8 @@ export function buildFallbackTrendsResponse() {
   return {
     hourlyTrends: Array.from({ length: 24 }, (_, i) => ({
       hour: `${i.toString().padStart(2, '0')}:00`,
-      fraudEvents: Math.floor(Math.random() * 50) + 10,
-      riskScore: Math.random() * 10,
+      fraudEvents: 0,
+      riskScore: 0,
     })),
   };
 }

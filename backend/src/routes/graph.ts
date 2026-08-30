@@ -64,7 +64,12 @@ router.get('/network', authMiddleware, async (_req: Request, res: Response) => {
       /* fall through */
     }
   }
+
   const graph = await getGraphData();
+  if (!graph?.nodes?.length && !graph?.edges?.length) {
+    res.json({ nodes: [], edges: [] });
+    return;
+  }
   res.json(graph);
 });
 

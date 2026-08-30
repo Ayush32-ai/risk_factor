@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildFallbackDashboardResponse, buildFallbackTrendsResponse, buildLiveFraudSpikeDashboard } from './fraud-spikes';
+import { getCurrentSimulation } from './attacks';
 
 test('dashboard fallback returns a valid payload when AI engine is unavailable', () => {
   const dashboard = buildFallbackDashboardResponse();
@@ -26,6 +27,14 @@ test('live dashboard reflects the active attack simulation', () => {
   assert.ok(Array.isArray(dashboard.recentSpikes));
   assert.ok(dashboard.recentSpikes.length > 0);
   assert.ok(dashboard.recentSpikes[0].timeframe.includes('Gen') || dashboard.recentSpikes[0].timeframe.includes('minutes'));
+});
+
+test('initial simulation should be idle until a real attack starts', () => {
+  const simulation = getCurrentSimulation();
+
+  assert.equal(simulation.status, 'idle');
+  assert.equal(simulation.scenario, '');
+  assert.equal(simulation.generation, 0);
 });
 
 test('trends fallback returns hourly data when AI engine is unavailable', () => {

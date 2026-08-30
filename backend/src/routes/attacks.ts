@@ -14,7 +14,18 @@ const simulateSchema = z.object({
   generation: z.number().int().min(1).max(100).default(1),
 });
 
-export let currentSimulation = mockData.attackSimulation;
+export let currentSimulation = {
+  id: '',
+  target: '',
+  scenario: '',
+  generation: 0,
+  transactions_count: 0,
+  accounts_count: 0,
+  merchants_count: 0,
+  detection_rate: 0,
+  status: 'idle',
+  blind_spot_discovered: false,
+};
 
 export function getCurrentSimulation() {
   return currentSimulation;
