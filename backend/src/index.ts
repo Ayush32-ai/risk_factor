@@ -70,6 +70,19 @@ app.use('/api/chargebacks', chargebacksRoutes);
 app.use('/api/ml', mlEvaluationRoutes);
 
 async function start() {
+  // Warn if critical services are pointed at localhost - common prod misconfiguration
+  const warnIfLocal = (name: string, value: string | undefined) => {
+    if (!value) return;
+    if (value.includes('localhost') || value.includes('127.0.0.1')) {
+      console.warn(`⚠ ${name} appears to be localhost - ensure this is intentional in production: ${value}`);
+    }
+  };
+
+  warnIfLocal('DATABASE_URL', config.databaseUrl);
+  warnIfLocal('REDIS_URL', config.redisUrl);
+  warnIfLocal('NEO4J_URI', config.neo4j.uri);
+  warnIfLocal('AI_ENGINE_URL', config.aiEngineUrl);
+
   await connectDatabases();
   // Load persisted attack simulation (if any) so dashboard/trends show consistent state
   try {
