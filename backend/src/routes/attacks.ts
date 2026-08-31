@@ -6,6 +6,7 @@ import { runAttackSimulation } from '../services/ai-client';
 import { logAuditEvent } from '../services/metrics';
 import { mockData } from '../data/mock';
 import { redis, isRedisReady } from '../db';
+import { getCurrentSimulation, setCurrentSimulation } from '../state/simulation';
 
 const router = Router();
 
@@ -15,19 +16,6 @@ const simulateSchema = z.object({
   generation: z.number().int().min(1).max(100).default(1),
 });
 
-export let currentSimulation = {
-  id: '',
-  target: '',
-  scenario: '',
-  generation: 0,
-  transactions_count: 0,
-  accounts_count: 0,
-  merchants_count: 0,
-  detection_rate: 0,
-  status: 'idle',
-  blind_spot_discovered: false,
-};
-
 const SIM_KEY = 'sentinel:current_simulation';
 
 export async function initializeAttackState() {
@@ -35,8 +23,59 @@ export async function initializeAttackState() {
     if (isRedisReady()) {
       const raw = await redis.get(SIM_KEY);
       if (raw) {
-        currentSimulation = JSON.parse(raw);
-        console.log('✓ Loaded persisted attack simulation from Redis');
+        try {
+          setCurrentSimulation(JSON.parse(raw));
+          console.log('✓ Loaded persisted attack simulation from Redis');
+        } catch (e) {
+          // Attempt to recover from legacy or malformed key formats like: {id:sim-123,target:...}
+          try {
+            const parseLegacy = (s: string) => {
+              const out: Record<string, any> = {};
+              const trimmed = s.replace(/^[^{]*{?/, '').replace(/}\s*$/, '');
+              const parts = trimmed.split(/,(?=[^,]*:)/g);
+              for (const p of parts) {
+                const idx = p.indexOf(':');
+                if (idx === -1) continue;
+                const k = p.slice(0, idx).trim().replace(/^['"`]?(.*?)['"`]?$/,'$1');
+                let v = p.slice(idx + 1).trim();
+                v = v.replace(/^['"]|['"]$/g, '');
+                if (/^-?\d+(?:\.\d+)?$/.test(v)) out[k] = Number(v);
+                else if (/^(true|false)$/i.test(v)) out[k] = v.toLowerCase() === 'true';
+                else out[k] = v;
+              }
+              return out;
+            };
+
+            const normalized = parseLegacy(raw);
+            // Ensure keys align with expected shape
+            if (normalized.detectionRate && !normalized.detection_rate) {
+              normalized.detection_rate = normalized.detectionRate;
+            }
+            const normalizedSim = {
+              id: normalized.id || `sim-${Date.now()}`,
+              target: normalized.target || 'Payment Risk Engine',
+              scenario: normalized.scenario || normalized.attack_pattern || 'Distributed Account Network',
+              generation: Number(normalized.generation || normalized.generation || 1),
+              transactions_count: Number(normalized.transactions_count || 0),
+              accounts_count: Number(normalized.accounts_count || 0),
+              merchants_count: Number(normalized.merchants_count || 0),
+              detection_rate: Number(normalized.detection_rate || 0),
+              status: normalized.status || 'running',
+              blind_spot_discovered: normalized.blind_spot_discovered === true || normalized.blind_spot_discovered === 'true' || (Number(normalized.detection_rate || 0) < 30),
+            };
+            setCurrentSimulation(normalizedSim);
+
+            // Persist normalized JSON back to Redis so other services can read it reliably
+            try {
+              await redis.set(SIM_KEY, JSON.stringify(getCurrentSimulation()));
+              console.log('✓ Rewrote corrupted persisted simulation to normalized JSON in Redis');
+            } catch (err) {
+              console.warn('⚠ Could not rewrite normalized simulation to Redis', err);
+            }
+          } catch (err2) {
+            console.warn('⚠ Failed to parse legacy persisted attack simulation', err2);
+          }
+        }
       }
     }
   } catch (err) {
@@ -44,12 +83,10 @@ export async function initializeAttackState() {
   }
 }
 
-export function getCurrentSimulation() {
-  return currentSimulation;
-}
+// use shared simulation state
 
 router.get('/current', authMiddleware, (_req: Request, res: Response) => {
-  res.json({ simulation: currentSimulation });
+  res.json({ simulation: getCurrentSimulation() });
 });
 
 router.get('/scenarios', authMiddleware, (_req: Request, res: Response) => {
@@ -70,7 +107,7 @@ router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: 
   await logAuditEvent('simulation_started', `Attack simulation started — ${scenario}`, 'AI');
 
   const result = await runAttackSimulation(scenario, generation);
-  currentSimulation = {
+  const simObj = {
     id: result.id || `sim-${Date.now()}`,
     target,
     scenario,
@@ -82,42 +119,46 @@ router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: 
     status: 'completed',
     blind_spot_discovered: result.detection_rate < 30,
   };
+  setCurrentSimulation(simObj);
 
-  if (currentSimulation.blind_spot_discovered) {
+  if (simObj.blind_spot_discovered) {
     await logAuditEvent(
       'blind_spot_discovered',
-      `Blind spot discovered: ${scenario} (${currentSimulation.detection_rate}% detection)`,
+      `Blind spot discovered: ${scenario} (${getCurrentSimulation().detection_rate}% detection)`,
       'AI'
     );
   }
 
-  res.json({ simulation: currentSimulation });
+  res.json({ simulation: getCurrentSimulation() });
   
   // Persist to Redis so other services share the same simulation state
   try {
-    if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(currentSimulation));
+    if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(getCurrentSimulation()));
   } catch (err) {
     console.warn('⚠ Failed to persist attack simulation to Redis', err);
   }
 });
 
 router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
-  const nextGen = (currentSimulation.generation || 1) + 1;
-  const result = await runAttackSimulation(currentSimulation.scenario, nextGen);
+  const current = getCurrentSimulation();
+  const nextGen = (current.generation || 1) + 1;
+  const result = await runAttackSimulation(current.scenario, nextGen);
 
-  currentSimulation = {
-    ...currentSimulation,
+  const evolved = {
+    ...current,
     generation: nextGen,
-    transactions_count: result.transactions_count + Math.floor(Math.random() * 5000),
-    accounts_count: result.accounts_count + Math.floor(Math.random() * 20),
-    detection_rate: Math.max(12, result.detection_rate - Math.random() * 2),
-    blind_spot_discovered: result.detection_rate < 30,
+    transactions_count: (result.transactions_count || 0) + Math.floor(Math.random() * 5000),
+    accounts_count: (result.accounts_count || 0) + Math.floor(Math.random() * 20),
+    detection_rate: Math.max(12, (result.detection_rate || 18) - Math.random() * 2),
+    blind_spot_discovered: (result.detection_rate || 0) < 30,
   };
 
-  res.json({ simulation: currentSimulation });
+  setCurrentSimulation(evolved);
+
+  res.json({ simulation: getCurrentSimulation() });
   
   try {
-    if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(currentSimulation));
+    if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(getCurrentSimulation()));
   } catch (err) {
     console.warn('⚠ Failed to persist attack simulation to Redis', err);
   }
@@ -138,7 +179,7 @@ router.post('/start/force', async (req: Request, res: Response) => {
     const generation = Number(body.generation || 1);
 
     const result = await runAttackSimulation(scenario, generation);
-    currentSimulation = {
+    const simObj = {
       id: result.id || `sim-${Date.now()}`,
       target: body.target || 'Payment Risk Engine',
       scenario,
@@ -151,7 +192,9 @@ router.post('/start/force', async (req: Request, res: Response) => {
       blind_spot_discovered: result.detection_rate < 30,
     };
 
-    res.json({ simulation: currentSimulation, note: 'force simulation started' });
+    setCurrentSimulation(simObj);
+
+    res.json({ simulation: getCurrentSimulation(), note: 'force simulation started' });
   } catch (err) {
     console.error('Force start simulation error:', err);
     res.status(500).json({ error: 'failed to start simulation' });

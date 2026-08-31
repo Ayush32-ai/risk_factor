@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 import { validateBody } from '../middleware/validate';
 import { callAiEngine } from '../services/ai-client';
 import { logAuditEvent } from '../services/metrics';
-import { getCurrentSimulation } from './attacks';
+import { getCurrentSimulation } from '../state/simulation';
 
 const router = Router();
 

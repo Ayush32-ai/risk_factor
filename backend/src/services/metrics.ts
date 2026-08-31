@@ -1,4 +1,5 @@
 import { pool, redis, isRedisReady } from '../db';
+import { getCurrentSimulation } from '../state/simulation';
 import { mockData } from '../data/mock';
 
 // Store WebSocket server reference for broadcasting
@@ -49,6 +50,62 @@ export async function getBlindSpots() {
         CASE severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 ELSE 3 END,
         detection_rate ASC`
     );
+    // Prefer current in-memory simulation state when available
+    try {
+      const liveSim = getCurrentSimulation();
+      if (liveSim && (liveSim.blind_spot_discovered || liveSim.detection_rate || liveSim.detectionRate)) {
+        const detectionRate = liveSim.detection_rate ?? liveSim.detectionRate ?? 0;
+        if (liveSim.blind_spot_discovered || detectionRate < 30) {
+          const simSpot = {
+            id: liveSim.id || `sim-${Date.now()}`,
+            title: `${liveSim.scenario || 'Simulated Attack'} Blind Spot`,
+            severity: detectionRate && detectionRate < 20 ? 'critical' : 'high',
+            detectionRate: detectionRate,
+            detection_rate: detectionRate,
+            potential_exposure: Math.round((liveSim.transactions_count || 0) * 0.12),
+            root_cause: 'Detection gap identified by attack simulator',
+            ai_recommendation: 'Increase detection rules and review velocity checks',
+            attack_pattern: liveSim.scenario || 'simulated_pattern',
+            status: 'open',
+            discovered_at: new Date().toISOString(),
+          };
+          return [simSpot, ...rows];
+        }
+      }
+
+      // If no in-memory sim, try persisted Redis simulation (legacy-tolerant)
+      if (isRedisReady()) {
+        const raw = await redis.get('sentinel:current_simulation');
+        if (raw) {
+          try {
+            const sim = JSON.parse(raw);
+            const detectionRate = sim?.detection_rate ?? sim?.detectionRate ?? 0;
+            const blindDiscovered = sim?.blind_spot_discovered === true || sim?.blind_spot_discovered === 'true' || detectionRate < 30;
+            if (blindDiscovered) {
+              const simSpot = {
+                id: sim.id || `sim-${Date.now()}`,
+                title: `${sim.scenario || 'Simulated Attack'} Blind Spot`,
+                severity: detectionRate && detectionRate < 20 ? 'critical' : 'high',
+                detectionRate: detectionRate,
+                detection_rate: detectionRate,
+                potential_exposure: Math.round((sim.transactions_count || 0) * 0.12),
+                root_cause: 'Detection gap identified by attack simulator',
+                ai_recommendation: 'Increase detection rules and review velocity checks',
+                attack_pattern: sim.scenario || 'simulated_pattern',
+                status: 'open',
+                discovered_at: new Date().toISOString(),
+              };
+              return [simSpot, ...rows];
+            }
+          } catch (err) {
+            console.warn('⚠ Failed to parse persisted simulation from Redis', err);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('⚠ Failed to augment blind spots from simulation state', e);
+    }
+
     if (rows.length) return rows;
   } catch {
     /* fallback */

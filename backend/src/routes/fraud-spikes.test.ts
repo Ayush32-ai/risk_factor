@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildFallbackDashboardResponse, buildFallbackTrendsResponse, buildLiveFraudSpikeDashboard } from './fraud-spikes';
-import { getCurrentSimulation } from './attacks';
+import { getCurrentSimulation } from '../state/simulation';
 
 test('dashboard fallback returns a valid payload when AI engine is unavailable', () => {
   const dashboard = buildFallbackDashboardResponse();

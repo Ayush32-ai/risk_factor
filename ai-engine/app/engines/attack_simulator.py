@@ -56,8 +56,46 @@ class AttackSimulator:
                     client = _redis_lib.from_url(redis_url, decode_responses=True)
                     raw = client.get('sentinel:current_simulation')
                     if raw:
-                        self.current_simulation = json.loads(raw)
-                        print('✓ Loaded persisted attack simulation from Redis in AI engine')
+                            try:
+                                self.current_simulation = json.loads(raw)
+                                print('✓ Loaded persisted attack simulation from Redis in AI engine')
+                            except Exception:
+                                # Try to recover from legacy/malformed format like {id:sim-123,...}
+                                try:
+                                    def parse_legacy(s: str):
+                                        cleaned = s.strip().lstrip('{').rstrip('}').strip()
+                                        parts = [p for p in cleaned.split(',') if ':' in p]
+                                        out = {}
+                                        for p in parts:
+                                            k, v = p.split(':', 1)
+                                            key = k.strip().strip('"').strip("'")
+                                            val = v.strip().strip('"').strip("'")
+                                            if val.lower() in ('true', 'false'):
+                                                out[key] = val.lower() == 'true'
+                                            else:
+                                                try:
+                                                    out[key] = int(val)
+                                                except Exception:
+                                                    try:
+                                                        out[key] = float(val)
+                                                    except Exception:
+                                                        out[key] = val
+                                        return out
+
+                                    parsed = parse_legacy(raw)
+                                    # normalize
+                                    if 'detectionRate' in parsed and 'detection_rate' not in parsed:
+                                        parsed['detection_rate'] = parsed['detectionRate']
+                                    self.current_simulation = parsed
+                                    print('✓ Recovered persisted attack simulation (legacy format) in AI engine')
+                                    # attempt to rewrite normalized JSON back to Redis
+                                    try:
+                                        client.set('sentinel:current_simulation', json.dumps(self.current_simulation))
+                                        print('✓ Rewrote normalized simulation to Redis from AI engine')
+                                    except Exception as e:
+                                        print('⚠ Could not rewrite normalized simulation to Redis from AI engine', e)
+                                except Exception as e2:
+                                    print('⚠ Could not parse persisted simulation in AI engine:', e2)
                 except Exception as e:
                     print('⚠ Could not load persisted simulation from Redis in AI engine:', e)
         except Exception:

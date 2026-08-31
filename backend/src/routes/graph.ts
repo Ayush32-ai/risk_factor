@@ -4,7 +4,7 @@ import { getGraphData, getInvestigation } from '../services/ai-client';
 import { mockData } from '../data/mock';
 import { getNeo4jDriver, isNeo4jReady } from '../db';
 import { fetchPaymentGraph } from '../db/graph';
-import { getCurrentSimulation } from './attacks';
+import { getCurrentSimulation } from '../state/simulation';
 
 function buildLiveGraphData(simulation: any) {
   const generation = simulation?.generation || 1;
