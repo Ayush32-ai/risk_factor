@@ -26,24 +26,26 @@ const createNoopRedis = () => ({
 });
 
 try {
-  // Validate URL format
-  // `new URL()` will throw for invalid URLs like 'redis://[:<password>@]<redis-host>:6379'
-  // which are commonly left as placeholders in deployment configs.
-  // If invalid, fall back to noop client.
-  if (!config.redisUrl) throw new Error('no redis url');
-  // eslint-disable-next-line no-new
-  new URL(config.redisUrl);
+  // Check if Redis URL is available and valid
+  if (!config.redisUrl) {
+    console.log('⚠ Redis URL not provided - Redis disabled');
+    redisClient = createNoopRedis();
+  } else {
+    // Validate URL format
+    new URL(config.redisUrl);
 
-  redisClient = new Redis(config.redisUrl, {
-    maxRetriesPerRequest: 3,
-    retryStrategy: (times) => (times > 8 ? null : Math.min(times * 200, 2000)),
-    lazyConnect: true,
-    enableOfflineQueue: false,
-  });
+    redisClient = new Redis(config.redisUrl, {
+      maxRetriesPerRequest: 3,
+      retryStrategy: (times) => (times > 8 ? null : Math.min(times * 200, 2000)),
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      connectTimeout: 10000,
+    });
 
-  redisClient.on('error', (err: Error) => {
-    console.warn('⚠ Redis error:', err?.message || err);
-  });
+    redisClient.on('error', (err: Error) => {
+      console.warn('⚠ Redis error:', err?.message || err);
+    });
+  }
 } catch (err) {
   console.warn('⚠ Redis disabled or misconfigured; caching disabled. REDIS_URL=', config.redisUrl);
   redisClient = createNoopRedis();
@@ -56,13 +58,27 @@ let neo4jReady = false;
 let postgresReady = false;
 let redisReady = false;
 
-export function getNeo4jDriver(): Driver {
+export function getNeo4jDriver(): Driver | null {
+  if (!config.neo4j.uri) {
+    console.log('⚠ Neo4j URI not provided - Neo4j disabled');
+    return null;
+  }
+  
   if (!neo4jDriver) {
-    neo4jDriver = neo4j.driver(
-      config.neo4j.uri,
-      neo4j.auth.basic(config.neo4j.user, config.neo4j.password),
-      { connectionTimeout: 15_000, maxConnectionLifetime: 60_000 }
-    );
+    try {
+      neo4jDriver = neo4j.driver(
+        config.neo4j.uri,
+        neo4j.auth.basic(config.neo4j.user, config.neo4j.password),
+        { 
+          connectionTimeout: 15_000, 
+          maxConnectionLifetime: 60_000,
+          connectionAcquisitionTimeout: 10_000
+        }
+      );
+    } catch (err) {
+      console.warn('⚠ Failed to create Neo4j driver:', (err as Error).message);
+      return null;
+    }
   }
   return neo4jDriver;
 }
@@ -90,24 +106,39 @@ export async function connectDatabases(): Promise<void> {
   }
 
   try {
-    await redis.connect();
-    await redis.ping();
-    redisReady = true;
-    console.log('✓ Redis connected');
+    if (!config.redisUrl) {
+      redisReady = false;
+      console.log('⚠ Redis URL not configured — caching disabled');
+    } else {
+      await redis.connect();
+      await redis.ping();
+      redisReady = true;
+      console.log('✓ Redis connected');
+    }
   } catch (err) {
     redisReady = false;
-    console.warn('⚠ Redis unavailable — caching disabled', (err as Error).message);
+    console.warn('⚠ Redis unavailable — caching disabled');
   }
 
   try {
-    const driver = getNeo4jDriver();
-    await driver.verifyConnectivity();
-    await seedPaymentGraph(driver);
-    neo4jReady = true;
-    console.log('✓ Neo4j connected (payment graph seeded)');
+    if (!config.neo4j.uri) {
+      neo4jReady = false;
+      console.log('⚠ Neo4j URI not configured — graph data from mock');
+    } else {
+      const driver = getNeo4jDriver();
+      if (driver) {
+        await driver.verifyConnectivity();
+        await seedPaymentGraph(driver);
+        neo4jReady = true;
+        console.log('✓ Neo4j connected (payment graph seeded)');
+      } else {
+        neo4jReady = false;
+        console.log('⚠ Neo4j driver creation failed — graph data from mock');
+      }
+    }
   } catch (err) {
     neo4jReady = false;
-    console.warn('⚠ Neo4j unavailable — graph data from mock', (err as Error).message);
+    console.warn('⚠ Neo4j unavailable — graph data from mock');
   }
 }
 

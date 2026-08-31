@@ -71,7 +71,7 @@ app.use('/api/ml', mlEvaluationRoutes);
 
 async function start() {
   // Warn if critical services are pointed at localhost - common prod misconfiguration
-  const warnIfLocal = (name: string, value: string | undefined) => {
+  const warnIfLocal = (name: string, value: string | null | undefined) => {
     if (!value) return;
     if (value.includes('localhost') || value.includes('127.0.0.1')) {
       console.warn(`⚠ ${name} appears to be localhost - ensure this is intentional in production: ${value}`);

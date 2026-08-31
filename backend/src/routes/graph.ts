@@ -55,10 +55,13 @@ router.get('/network', authMiddleware, async (_req: Request, res: Response) => {
 
   if (isNeo4jReady()) {
     try {
-      const graph = await fetchPaymentGraph(getNeo4jDriver());
-      if (graph?.nodes.length) {
-        res.json(graph);
-        return;
+      const driver = getNeo4jDriver();
+      if (driver) {
+        const graph = await fetchPaymentGraph(driver);
+        if (graph?.nodes.length) {
+          res.json(graph);
+          return;
+        }
       }
     } catch {
       /* fall through */
