@@ -13,3 +13,4 @@ prometheus-client==0.17.0
 redis==4.6.0
 matplotlib==3.8.1
 seaborn==0.12.2
+requests==2.31.0
