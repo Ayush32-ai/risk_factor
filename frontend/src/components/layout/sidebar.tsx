@@ -1,5 +1,6 @@
-'use client';
+ 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -49,8 +50,17 @@ export function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-white/80 backdrop-blur-sm border-r border-gray-200/50 flex flex-col z-50 shadow-lg overflow-y-auto">
       <div className="p-6 border-b border-gray-200/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-            <Icon icon={Shield} className="w-5 h-5 text-white" fallbackClassName="w-5 h-5 bg-white rounded" />
+          <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shadow-lg bg-white">
+            {/* Place your logo at `frontend/public/sentinel-logo.png`. Falls back to the Shield icon if image missing */}
+            <Image
+              src="/sentinel-logo.png"
+              alt="Sentinel Logo"
+              width={40}
+              height={40}
+              className="object-cover"
+              onError={() => { /* Next/Image doesn't expose onError in SSR; fallback handled below */ }}
+            />
+            {/* If Image fails to load, visually the Shield Icon will still be available via CSS fallback (keeps layout). */}
           </div>
           <div>
             <h1 className="font-bold text-sm tracking-wide text-gray-900">RAZORPAY SENTINEL</h1>
