@@ -149,6 +149,8 @@ export function buildFallbackTrendsResponse() {
 router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) => {
   try {
     const currentSimulation = getCurrentSimulation();
+    console.log('🔍 Fraud spikes dashboard - current simulation:', currentSimulation);
+    
     const simulation = {
       scenario: currentSimulation?.scenario,
       generation: currentSimulation?.generation,
@@ -164,8 +166,11 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
       simulation.blind_spot_discovered
     );
 
+    console.log('🔍 Has live simulation state:', hasLiveSimulationState, 'Simulation data:', simulation);
+
     if (hasLiveSimulationState) {
       const liveDashboard = buildLiveFraudSpikeDashboard(simulation);
+      console.log('✅ Returning live dashboard data:', liveDashboard);
       res.json(liveDashboard);
       return;
     }
@@ -173,6 +178,7 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
     const result = await callAiEngine<FraudSpikeDashboard>('/api/fraud-spikes/dashboard');
 
     if (!result) {
+      console.log('⚠ No AI engine result, returning fallback data');
       res.json(buildFallbackDashboardResponse());
       return;
     }
@@ -198,6 +204,7 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
       }
     };
 
+    console.log('✅ Returning transformed AI engine data:', transformed);
     res.json(transformed);
   } catch (error) {
     console.error('Fraud spikes dashboard error:', error);

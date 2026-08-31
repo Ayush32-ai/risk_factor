@@ -217,7 +217,7 @@ export default function FraudSpikesPage() {
           </div>
 
           <div className="p-6 space-y-8">
-            {/* Real-Time Attack Status Panel */}
+                  {/* Real-time Attack Status Panel */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -239,6 +239,11 @@ export default function FraudSpikesPage() {
                       : 'No active attack simulation running'
                     }
                   </p>
+                  {!dashboard?.attackContext?.activeAttack && (
+                    <p className="text-blue-600 text-sm mt-2">
+                      💡 Start a demo attack simulation in the <strong>Attack Simulator</strong> page to see real-time data updates
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   {dashboard?.attackContext?.activeAttack && (
@@ -248,7 +253,7 @@ export default function FraudSpikesPage() {
                     </div>
                   )}
                   {dashboard?.attackContext && dashboard.attackContext.defenseEffectiveness > 0 && (
-                    <div className="bg-emerald-100 border-2 border-emerald-200 rounded-lg p-4">
+                    <div className="bg-emerald-100 border-2 border-emerald-200 rounded-lg p-4 ml-2">
                       <div className="text-2xl font-bold text-emerald-600">{dashboard.attackContext.defenseEffectiveness.toFixed(0)}%</div>
                       <div className="text-sm text-emerald-600">Defense Effective</div>
                     </div>

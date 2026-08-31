@@ -94,6 +94,20 @@ class ApiClient {
     );
   }
 
+  startDemoAttack() {
+    return this.request<{ simulation: Record<string, unknown>; message: string }>(
+      '/api/attacks/start/demo',
+      { method: 'POST', body: JSON.stringify({}) }
+    );
+  }
+
+  stopAttack() {
+    return this.request<{ simulation: Record<string, unknown>; message: string }>(
+      '/api/attacks/stop',
+      { method: 'POST', body: JSON.stringify({}) }
+    );
+  }
+
   getGraph() {
     return this.request<{ nodes: Array<Record<string, unknown>>; edges: Array<Record<string, unknown>> }>(
       '/api/graph/network'

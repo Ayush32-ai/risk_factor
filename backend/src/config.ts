@@ -13,6 +13,7 @@ const isValidUrl = (url: string): boolean => {
     // Check if it's not a placeholder or localhost in production
     if (process.env.NODE_ENV === 'production') {
       return !url.includes('localhost') && 
+             !url.includes('127.0.0.1') &&
              !url.includes('<') && 
              !url.includes('>') && 
              parsed.hostname !== 'localhost' &&
@@ -24,9 +25,44 @@ const isValidUrl = (url: string): boolean => {
   }
 };
 
+// Force disable optional services in production if they're localhost
+const getRedisUrl = (): string | null => {
+  const redisUrl = process.env.REDIS_URL;
+  const isProduction = process.env.NODE_ENV === 'production' || !!process.env.PORT;
+  
+  if (!redisUrl) return null;
+  
+  // In production, disable Redis if it's localhost
+  if (isProduction) {
+    if (redisUrl.includes('localhost') || redisUrl.includes('127.0.0.1')) {
+      console.log('⚠ Redis URL is localhost in production - disabling Redis');
+      return null;
+    }
+  }
+  
+  return isValidUrl(redisUrl) ? redisUrl : null;
+};
+
+const getNeo4jUri = (): string | null => {
+  const neo4jUri = process.env.NEO4J_URI;
+  const isProduction = process.env.NODE_ENV === 'production' || !!process.env.PORT;
+  
+  if (!neo4jUri) return null;
+  
+  // In production, disable Neo4j if it's localhost
+  if (isProduction) {
+    if (neo4jUri.includes('localhost') || neo4jUri.includes('127.0.0.1')) {
+      console.log('⚠ Neo4j URI is localhost in production - disabling Neo4j');
+      return null;
+    }
+  }
+  
+  return isValidUrl(neo4jUri) ? neo4jUri : null;
+};
+
 export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv: process.env.NODE_ENV || (process.env.PORT ? 'production' : 'development'), // Auto-detect production from PORT
   jwtSecret: process.env.JWT_SECRET || 'sentinel-dev-jwt-secret',
   corsOrigin: parsedCorsOrigins[0] || 'http://localhost:3001',
   corsOrigins: [
@@ -37,13 +73,9 @@ export const config = {
     'https://risk-factor-500.onrender.com',
   ],
   databaseUrl: process.env.DATABASE_URL || 'postgresql://sentinel:sentinel_dev@localhost:5432/sentinel',
-  redisUrl: (process.env.REDIS_URL && isValidUrl(process.env.REDIS_URL)) 
-    ? process.env.REDIS_URL 
-    : (process.env.NODE_ENV === 'production' ? null : 'redis://localhost:6379'),
+  redisUrl: getRedisUrl(),
   neo4j: {
-    uri: (process.env.NEO4J_URI && isValidUrl(process.env.NEO4J_URI)) 
-      ? process.env.NEO4J_URI 
-      : (process.env.NODE_ENV === 'production' ? null : 'bolt://localhost:7687'),
+    uri: getNeo4jUri(),
     user: process.env.NEO4J_USER || 'neo4j',
     password: process.env.NEO4J_PASSWORD || 'sentinel_dev',
   },

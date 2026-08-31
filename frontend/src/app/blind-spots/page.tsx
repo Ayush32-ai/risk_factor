@@ -107,15 +107,22 @@ export default function BlindSpotsPage() {
                   >
                     <div className="flex items-start justify-between mb-6">
                       <div>
-                        <span className={`${
-                          spot.severity === 'critical' 
-                            ? 'razorpay-badge-danger'
-                            : spot.severity === 'high'
-                            ? 'razorpay-badge-warning'
-                            : 'razorpay-badge-success'
-                        }`}>
-                          {String(spot.severity).toUpperCase()}
-                        </span>
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className={`${
+                            spot.severity === 'critical' 
+                              ? 'razorpay-badge-danger'
+                              : spot.severity === 'high'
+                              ? 'razorpay-badge-warning'
+                              : 'razorpay-badge-success'
+                          }`}>
+                            {String(spot.severity).toUpperCase()}
+                          </span>
+                          {spot.id?.includes('sim-') && (
+                            <span className="razorpay-badge-info text-xs">
+                              LIVE SIMULATION
+                            </span>
+                          )}
+                        </div>
                         <h2 className="text-xl font-bold text-gray-900 mt-3">{String(spot.title)}</h2>
                       </div>
                       <div className="text-right bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-red-200 rounded-xl p-4">

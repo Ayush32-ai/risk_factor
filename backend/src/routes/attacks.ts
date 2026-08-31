@@ -25,7 +25,7 @@ export async function initializeAttackState() {
       if (raw) {
         try {
           setCurrentSimulation(JSON.parse(raw));
-          console.log('✓ Loaded persisted attack simulation from Redis');
+          console.log('✓ Loaded persisted attack simulation from Redis:', getCurrentSimulation());
         } catch (e) {
           // Attempt to recover from legacy or malformed key formats like: {id:sim-123,target:...}
           try {
@@ -76,11 +76,18 @@ export async function initializeAttackState() {
             console.warn('⚠ Failed to parse legacy persisted attack simulation', err2);
           }
         }
+      } else {
+        console.log('ℹ No persisted attack simulation found - starting with default state');
       }
+    } else {
+      console.log('ℹ Redis not available - starting with default simulation state');
     }
   } catch (err) {
     console.warn('⚠ Failed to load persisted attack simulation from Redis', err);
   }
+
+  // Log current simulation state
+  console.log('ℹ Current simulation state:', getCurrentSimulation());
 }
 
 // use shared simulation state
@@ -161,6 +168,84 @@ router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
     if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(getCurrentSimulation()));
   } catch (err) {
     console.warn('⚠ Failed to persist attack simulation to Redis', err);
+  }
+});
+
+router.post('/start/demo', authMiddleware, async (_req: Request, res: Response) => {
+  try {
+    // Create a demo simulation with realistic data
+    const demoSim = {
+      id: `demo-${Date.now()}`,
+      target: 'Payment Risk Engine',
+      scenario: 'Distributed Account Network',
+      generation: 3,
+      transactions_count: 45000,
+      accounts_count: 127,
+      merchants_count: 23,
+      detection_rate: 18.5, // Low detection rate to trigger blind spots and spikes
+      status: 'running',
+      blind_spot_discovered: true,
+    };
+
+    setCurrentSimulation(demoSim);
+    
+    await logAuditEvent('demo_simulation_started', `Demo attack simulation started — ${demoSim.scenario}`, 'System');
+
+    console.log('✅ Demo simulation started:', demoSim);
+    
+    res.json({ 
+      simulation: getCurrentSimulation(),
+      message: 'Demo simulation started with active attack data'
+    });
+    
+    // Persist to Redis so other services share the same simulation state
+    try {
+      if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(getCurrentSimulation()));
+    } catch (err) {
+      console.warn('⚠ Failed to persist demo simulation to Redis', err);
+    }
+  } catch (error) {
+    console.error('Demo simulation error:', error);
+    res.status(500).json({ error: 'Failed to start demo simulation' });
+  }
+});
+
+router.post('/stop', authMiddleware, async (_req: Request, res: Response) => {
+  try {
+    // Reset to idle state
+    const idleSim = {
+      id: '',
+      target: '',
+      scenario: '',
+      generation: 0,
+      transactions_count: 0,
+      accounts_count: 0,
+      merchants_count: 0,
+      detection_rate: 0,
+      status: 'idle',
+      blind_spot_discovered: false,
+    };
+
+    setCurrentSimulation(idleSim);
+    
+    await logAuditEvent('simulation_stopped', 'Attack simulation stopped', 'User');
+
+    console.log('🛑 Simulation stopped');
+    
+    res.json({ 
+      simulation: getCurrentSimulation(),
+      message: 'Simulation stopped'
+    });
+    
+    // Clear from Redis
+    try {
+      if (isRedisReady()) await redis.del(SIM_KEY);
+    } catch (err) {
+      console.warn('⚠ Failed to clear simulation from Redis', err);
+    }
+  } catch (error) {
+    console.error('Stop simulation error:', error);
+    res.status(500).json({ error: 'Failed to stop simulation' });
   }
 });
 

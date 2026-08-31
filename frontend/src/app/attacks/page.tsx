@@ -56,6 +56,32 @@ export default function AttacksPage() {
     },
   });
 
+  const demoMutation = useMutation({
+    mutationFn: () => api.startDemoAttack(),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['attack-simulation'] }),
+        queryClient.invalidateQueries({ queryKey: ['graph'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-spikes-dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-trends'] }),
+        queryClient.invalidateQueries({ queryKey: ['blind-spots'] }),
+      ]);
+    },
+  });
+
+  const stopMutation = useMutation({
+    mutationFn: () => api.stopAttack(),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['attack-simulation'] }),
+        queryClient.invalidateQueries({ queryKey: ['graph'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-spikes-dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['fraud-trends'] }),
+        queryClient.invalidateQueries({ queryKey: ['blind-spots'] }),
+      ]);
+    },
+  });
+
   const sim = data?.simulation as Record<string, unknown> | undefined;
   const detectionRate = Number(sim?.detection_rate ?? 21.4);
   const isBlindSpot = sim?.blind_spot_discovered || detectionRate < 30;
@@ -72,6 +98,18 @@ export default function AttacksPage() {
             <p className="text-sentinel-muted mt-1">Red-team engine that discovers detection blind spots</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={() => demoMutation.mutate()}
+              disabled={demoMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg font-medium transition-colors"
+            >
+              <Icon 
+                icon={demoMutation.isPending ? Loader2 : Play} 
+                className={`w-4 h-4 ${demoMutation.isPending ? 'animate-spin' : ''}`}
+                fallbackClassName="w-4 h-4 bg-white rounded"
+              />
+              Start Demo
+            </button>
             <button
               onClick={() => startMutation.mutate()}
               disabled={startMutation.isPending}
@@ -96,6 +134,20 @@ export default function AttacksPage() {
               />
               Evolve (+1 Gen)
             </button>
+            {(sim?.status === 'running' || sim?.status === 'completed') && (
+              <button
+                onClick={() => stopMutation.mutate()}
+                disabled={stopMutation.isPending}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 rounded-lg font-medium transition-colors"
+              >
+                <Icon 
+                  icon={stopMutation.isPending ? Loader2 : AlertTriangle} 
+                  className={`w-4 h-4 ${stopMutation.isPending ? 'animate-spin' : ''}`}
+                  fallbackClassName="w-4 h-4 bg-white rounded"
+                />
+                Stop
+              </button>
+            )}
           </div>
         </div>
 
