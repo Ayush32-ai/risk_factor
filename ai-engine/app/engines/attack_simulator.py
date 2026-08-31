@@ -1,7 +1,14 @@
 """Red-team attack simulator — evolves attack patterns to find blind spots."""
 
 import random
+import os
+import json
 from typing import Dict, List
+
+try:
+    import redis as _redis_lib
+except Exception:
+    _redis_lib = None
 
 
 ATTACK_SCENARIOS = {
@@ -41,6 +48,20 @@ ATTACK_SCENARIOS = {
 class AttackSimulator:
     def __init__(self):
         self.current_simulation = None
+        # Try to load persisted simulation from Redis if available
+        try:
+            redis_url = os.environ.get('REDIS_URL')
+            if _redis_lib and redis_url:
+                try:
+                    client = _redis_lib.from_url(redis_url, decode_responses=True)
+                    raw = client.get('sentinel:current_simulation')
+                    if raw:
+                        self.current_simulation = json.loads(raw)
+                        print('✓ Loaded persisted attack simulation from Redis in AI engine')
+                except Exception as e:
+                    print('⚠ Could not load persisted simulation from Redis in AI engine:', e)
+        except Exception:
+            pass
     
     def simulate(self, scenario: str, generation: int = 1) -> Dict:
         config = ATTACK_SCENARIOS.get(scenario, ATTACK_SCENARIOS["Distributed Account Network"])

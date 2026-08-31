@@ -256,6 +256,41 @@ router.post('/analyze', authMiddleware, validateBody(analyzeSchema), async (req:
 // Trends endpoint
 router.get('/trends', authMiddleware, async (_req: Request, res: Response) => {
   try {
+    // Prefer using the current in-memory simulation state when available
+    const currentSimulation = getCurrentSimulation();
+
+    const hasLiveSimulationState = !!(
+      currentSimulation?.scenario ||
+      currentSimulation?.generation ||
+      currentSimulation?.detection_rate !== undefined ||
+      currentSimulation?.blind_spot_discovered
+    );
+
+    if (hasLiveSimulationState) {
+      const detectionRate = currentSimulation.detection_rate ?? 18;
+      const txCount = currentSimulation.transactions_count ?? 42000;
+
+      const hourlyTrends = Array.from({ length: 24 }, (_, i) => {
+        const hourIndex = i;
+        // Create a wave so activity varies across the day
+        const wave = Math.sin((hourIndex / 24) * Math.PI * 2) * 0.25 + 0.75;
+        const intensity = Math.max(0.5, (100 - detectionRate) * wave);
+
+        const fraudEvents = Math.max(1, Math.round(txCount * 0.0008 * intensity));
+        const riskScore = Number(Math.min(9.9, 5 + intensity / 10).toFixed(1));
+
+        return {
+          hour: `${hourIndex.toString().padStart(2, '0')}:00`,
+          fraudEvents,
+          riskScore,
+        };
+      });
+
+      res.json({ hourlyTrends });
+      return;
+    }
+
+    // Fallback: try calling the AI engine (if configured)
     const result = await callAiEngine<FraudTrends>('/api/fraud-spikes/trends');
 
     if (!result) {
