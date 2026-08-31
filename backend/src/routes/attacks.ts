@@ -5,6 +5,7 @@ import { validateBody } from '../middleware/validate';
 import { runAttackSimulation } from '../services/ai-client';
 import { logAuditEvent } from '../services/metrics';
 import { mockData } from '../data/mock';
+import { redis, isRedisReady } from '../db';
 
 const router = Router();
 
@@ -26,6 +27,22 @@ export let currentSimulation = {
   status: 'idle',
   blind_spot_discovered: false,
 };
+
+const SIM_KEY = 'sentinel:current_simulation';
+
+export async function initializeAttackState() {
+  try {
+    if (isRedisReady()) {
+      const raw = await redis.get(SIM_KEY);
+      if (raw) {
+        currentSimulation = JSON.parse(raw);
+        console.log('✓ Loaded persisted attack simulation from Redis');
+      }
+    }
+  } catch (err) {
+    console.warn('⚠ Failed to load persisted attack simulation from Redis', err);
+  }
+}
 
 export function getCurrentSimulation() {
   return currentSimulation;
@@ -75,6 +92,13 @@ router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: 
   }
 
   res.json({ simulation: currentSimulation });
+  
+  // Persist to Redis so other services share the same simulation state
+  try {
+    if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(currentSimulation));
+  } catch (err) {
+    console.warn('⚠ Failed to persist attack simulation to Redis', err);
+  }
 });
 
 router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
@@ -91,6 +115,45 @@ router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
   };
 
   res.json({ simulation: currentSimulation });
+  
+  try {
+    if (isRedisReady()) await redis.set(SIM_KEY, JSON.stringify(currentSimulation));
+  } catch (err) {
+    console.warn('⚠ Failed to persist attack simulation to Redis', err);
+  }
 });
 
 export default router;
+
+// Optional: force-start simulation without auth when ALLOW_FORCE_SIM is enabled
+router.post('/start/force', async (req: Request, res: Response) => {
+  try {
+    const allow = (process.env.ALLOW_FORCE_SIM || '').toLowerCase();
+    if (!['1', 'true', 'yes'].includes(allow)) {
+      return res.status(403).json({ error: 'force simulation disabled' });
+    }
+
+    const body = req.body || {};
+    const scenario = body.scenario || 'Distributed Account Network';
+    const generation = Number(body.generation || 1);
+
+    const result = await runAttackSimulation(scenario, generation);
+    currentSimulation = {
+      id: result.id || `sim-${Date.now()}`,
+      target: body.target || 'Payment Risk Engine',
+      scenario,
+      generation: result.generation || generation,
+      transactions_count: result.transactions_count,
+      accounts_count: result.accounts_count,
+      merchants_count: result.merchants_count,
+      detection_rate: result.detection_rate,
+      status: 'running',
+      blind_spot_discovered: result.detection_rate < 30,
+    };
+
+    res.json({ simulation: currentSimulation, note: 'force simulation started' });
+  } catch (err) {
+    console.error('Force start simulation error:', err);
+    res.status(500).json({ error: 'failed to start simulation' });
+  }
+});

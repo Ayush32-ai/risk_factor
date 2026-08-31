@@ -10,7 +10,7 @@ import { setWebSocketServer } from './services/metrics';
 
 import authRoutes from './routes/auth';
 import overviewRoutes from './routes/overview';
-import attackRoutes from './routes/attacks';
+import attackRoutes, { initializeAttackState } from './routes/attacks';
 import graphRoutes from './routes/graph';
 import blindspotRoutes from './routes/blindspots';
 import defenseRoutes from './routes/defense';
@@ -71,6 +71,12 @@ app.use('/api/ml', mlEvaluationRoutes);
 
 async function start() {
   await connectDatabases();
+  // Load persisted attack simulation (if any) so dashboard/trends show consistent state
+  try {
+    await initializeAttackState();
+  } catch (err) {
+    console.warn('⚠ Failed to initialize attack state from persistence', err);
+  }
 
   const wss = setupWebSocket(server);
   setWebSocketServer(wss); // Connect WebSocket to metrics for broadcasting
