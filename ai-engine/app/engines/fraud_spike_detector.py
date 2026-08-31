@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from collections import defaultdict
 import json
+import os
 
 # Import other engines for real data integration
 from .attack_simulator import attack_simulator
@@ -66,6 +67,18 @@ class FraudSpikeDetector:
         
         # Initialize with some baseline data
         self._initialize_baseline_from_attacks()
+        # Optional: seed a lightweight attack simulation when none exists (useful in deployed demo)
+        try:
+            seed_flag = os.environ.get('AI_SEED_ATTACK_SIM', '')
+            if seed_flag.lower() in ('1', 'true', 'yes'):
+                current = attack_simulator.get_current_simulation()
+                if not current:
+                    print('ℹ️ AI_SEED_ATTACK_SIM enabled — seeding attack simulation for fraud spike detector')
+                    attack_simulator.simulate('Distributed Account Network', 1)
+                    # Re-initialize baseline based on the seeded simulation
+                    self._initialize_baseline_from_attacks()
+        except Exception as e:
+            print(f'Error while optionally seeding attack simulation: {e}')
     
     def _initialize_baseline_from_attacks(self):
         """Initialize baseline data from historical attack patterns."""

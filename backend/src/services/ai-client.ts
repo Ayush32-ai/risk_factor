@@ -12,9 +12,20 @@ export async function callAiEngine<T>(
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(60000),
     });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
+    if (!res.ok) {
+      const text = await res.text().catch(() => null);
+      console.error(`❌ AI engine returned non-OK (${res.status}) for ${endpoint}:`, text);
+      return null;
+    }
+
+    try {
+      return (await res.json()) as T;
+    } catch (err) {
+      console.error(`❌ Failed to parse JSON from AI engine for ${endpoint}:`, err);
+      return null;
+    }
   } catch {
+    console.error(`❌ Error calling AI engine at ${config.aiEngineUrl}${endpoint}`);
     return null;
   }
 }
