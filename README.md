@@ -107,7 +107,7 @@ npm run dev
 
 ### 5. Open Dashboard
 
-Visit **http://localhost:3000**
+Visit **https://risk-factor400.onrender.com/login**
 
 **Login:** `admin@razorpay.com` / `sentinel123`
 
