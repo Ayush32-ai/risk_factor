@@ -67,33 +67,76 @@ export function buildLiveFraudSpikeDashboard(simulation: {
   const activeAttack = !!simulation.blind_spot_discovered || (simulation.generation ?? 0) > 0;
   const scenario = simulation.scenario || 'Distributed Account Network';
   const txCount = simulation.transactions_count ?? 42000;
+  const generation = simulation.generation ?? 1;
 
+  // Create realistic, time-based fraud spikes based on actual attack progression
+  const now = new Date();
+  
+  // Calculate severities
+  const primarySeverity = detectionRate < 25 ? 'high' : detectionRate < 50 ? 'medium' : 'low';
+  const secondarySeverity = detectionRate < 30 ? 'high' : 'medium';
+  const tertiarySeverity = detectionRate < 20 ? 'high' : detectionRate < 40 ? 'medium' : 'low';
+  
   const baseSpikes = [
     {
-      pattern: 'Distributed Account Network',
-      severity: 'high' as const,
-      confidence: Math.min(99, 82 + (100 - detectionRate) / 2),
-      transactions: Math.max(300, Math.round(txCount * 0.12)),
-      timeframe: `Gen ${simulation.generation ?? 1} momentum`,
-      riskScore: 8.8 + Math.min(1.8, (100 - detectionRate) / 30),
+      pattern: scenario, // Use actual scenario name
+      severity: primarySeverity as 'high' | 'medium' | 'low',
+      confidence: Math.min(99, 82 + (100 - detectionRate) / 2 + generation * 2),
+      transactions: Math.max(300, Math.round(txCount * (0.12 + generation * 0.02))),
+      timeframe: `Gen ${generation} active (${Math.floor((100 - detectionRate) * 1.2)}min ago)`,
+      riskScore: Number((8.8 + Math.min(1.8, (100 - detectionRate) / 30) + generation * 0.3).toFixed(2)),
     },
     {
-      pattern: 'Credential Stuffing Burst',
-      severity: 'medium' as const,
-      confidence: Math.min(96, 72 + (100 - detectionRate) / 3),
-      transactions: Math.max(180, Math.round(txCount * 0.07)),
-      timeframe: 'Within last 20 min',
-      riskScore: 7.2 + Math.min(1.4, (100 - detectionRate) / 40),
+      pattern: 'Credential Stuffing Evolution',
+      severity: secondarySeverity as 'high' | 'medium' | 'low',
+      confidence: Math.min(96, 72 + (100 - detectionRate) / 3 + generation),
+      transactions: Math.max(180, Math.round(txCount * (0.07 + generation * 0.01))),
+      timeframe: `${Math.floor(20 + generation * 5)}min ago`,
+      riskScore: Number((7.2 + Math.min(1.4, (100 - detectionRate) / 40) + generation * 0.2).toFixed(2)),
     },
     {
-      pattern: 'Device Rotation Cluster',
-      severity: 'high' as const,
-      confidence: Math.min(97, 76 + (100 - detectionRate) / 2.5),
-      transactions: Math.max(220, Math.round(txCount * 0.09)),
-      timeframe: 'Within last 35 min',
-      riskScore: 8.3 + Math.min(1.7, (100 - detectionRate) / 35),
+      pattern: `${scenario} Network Expansion`,
+      severity: tertiarySeverity as 'high' | 'medium' | 'low',
+      confidence: Math.min(97, 76 + (100 - detectionRate) / 2.5 + generation * 1.5),
+      transactions: Math.max(220, Math.round(txCount * (0.09 + generation * 0.015))),
+      timeframe: `${Math.floor(35 + generation * 8)}min ago`,
+      riskScore: Number((8.3 + Math.min(1.7, (100 - detectionRate) / 35) + generation * 0.25).toFixed(2)),
     },
   ];
+
+  // Add scenario-specific spikes
+  if (scenario.includes('Refund')) {
+    baseSpikes.push({
+      pattern: 'Circular Refund Pattern',
+      severity: 'high' as const,
+      confidence: Math.min(94, 85 + (100 - detectionRate) / 4),
+      transactions: Math.round(txCount * 0.05),
+      timeframe: `${Math.floor(15 + generation * 3)}min ago`,
+      riskScore: Number((9.1 + Math.min(0.8, (100 - detectionRate) / 50)).toFixed(2)),
+    });
+  }
+
+  if (scenario.includes('Velocity')) {
+    baseSpikes.push({
+      pattern: 'High-Velocity Transaction Burst',
+      severity: 'high' as const,
+      confidence: Math.min(98, 88 + (100 - detectionRate) / 5),
+      transactions: Math.round(txCount * 0.08),
+      timeframe: `${Math.floor(8 + generation * 2)}min ago`,
+      riskScore: Number((8.7 + Math.min(1.2, (100 - detectionRate) / 25)).toFixed(2)),
+    });
+  }
+
+  if (scenario.includes('Device')) {
+    baseSpikes.push({
+      pattern: 'Fingerprint Rotation Attack',
+      severity: 'high' as const,
+      confidence: Math.min(95, 80 + (100 - detectionRate) / 3),
+      transactions: Math.round(txCount * 0.06),
+      timeframe: `${Math.floor(12 + generation * 4)}min ago`,
+      riskScore: Number((8.9 + Math.min(1.0, (100 - detectionRate) / 30)).toFixed(2)),
+    });
+  }
 
   return {
     totalSpikes: Math.max(3, Math.round(baseSpikes.length + (100 - detectionRate) / 3)),
@@ -101,10 +144,10 @@ export function buildLiveFraudSpikeDashboard(simulation: {
     averageConfidence: Number((baseSpikes.reduce((sum, spike) => sum + spike.confidence, 0) / baseSpikes.length).toFixed(1)),
     transactionsAffected: Math.max(700, Math.round(txCount * 0.18)),
     patternBreakdown: [
-      { pattern: 'Account Takeover', count: 8 },
-      { pattern: 'Payment Velocity', count: 6 },
-      { pattern: 'Device Rotation', count: 5 },
-      { pattern: 'Card Testing', count: 4 },
+      { pattern: 'Account Takeover', count: Math.max(4, 8 + generation) },
+      { pattern: 'Payment Velocity', count: Math.max(3, 6 + generation) },
+      { pattern: 'Device Rotation', count: Math.max(2, 5 + generation) },
+      { pattern: 'Card Testing', count: Math.max(1, 4 + Math.floor(generation / 2)) },
     ],
     recentSpikes: baseSpikes,
     attackContext: {
@@ -145,6 +188,46 @@ export function buildFallbackTrendsResponse() {
   };
 }
 
+// Debug endpoint to check simulation state
+router.get('/debug', authMiddleware, async (_req: Request, res: Response) => {
+  const currentSimulation = getCurrentSimulation();
+  const hasLiveSimulationState = !!(
+    currentSimulation?.scenario ||
+    currentSimulation?.generation ||
+    currentSimulation?.detection_rate !== undefined ||
+    currentSimulation?.blind_spot_discovered
+  );
+  
+  const simulation = {
+    scenario: currentSimulation?.scenario,
+    generation: currentSimulation?.generation,
+    detection_rate: currentSimulation?.detection_rate,
+    blind_spot_discovered: currentSimulation?.blind_spot_discovered,
+    transactions_count: currentSimulation?.transactions_count,
+  };
+
+  if (hasLiveSimulationState) {
+    const liveDashboard = buildLiveFraudSpikeDashboard(simulation);
+    res.json({
+      status: 'LIVE_SIMULATION_ACTIVE',
+      currentSimulation,
+      hasLiveSimulationState,
+      liveDashboardSample: {
+        recentSpikesCount: liveDashboard.recentSpikes.length,
+        firstSpike: liveDashboard.recentSpikes[0],
+        attackContext: liveDashboard.attackContext,
+      }
+    });
+  } else {
+    res.json({
+      status: 'NO_ACTIVE_SIMULATION',
+      currentSimulation,
+      hasLiveSimulationState,
+      message: 'Start an attack simulation to see live fraud spikes'
+    });
+  }
+});
+
 // Dashboard endpoint
 router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) => {
   try {
@@ -170,7 +253,7 @@ router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) =>
 
     if (hasLiveSimulationState) {
       const liveDashboard = buildLiveFraudSpikeDashboard(simulation);
-      console.log('✅ Returning live dashboard data:', liveDashboard);
+      console.log('✅ Returning live dashboard data with recentSpikes:', liveDashboard.recentSpikes);
       res.json(liveDashboard);
       return;
     }
