@@ -19,6 +19,7 @@ import fraudSpikesRoutes from './routes/fraud-spikes';
 import returnsRoutes from './routes/returns';
 import chargebacksRoutes from './routes/chargebacks';
 import mlEvaluationRoutes from './routes/ml-evaluation';
+import adminRoutes from './routes/admin';
 
 const app = express();
 const server = createServer(app);
@@ -68,6 +69,7 @@ app.use('/api/fraud-spikes', fraudSpikesRoutes);
 app.use('/api/returns', returnsRoutes);
 app.use('/api/chargebacks', chargebacksRoutes);
 app.use('/api/ml', mlEvaluationRoutes);
+app.use('/api/admin', adminRoutes);
 
 async function start() {
   // Warn if critical services are pointed at localhost - common prod misconfiguration

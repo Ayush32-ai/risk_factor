@@ -3,12 +3,79 @@ import Redis from 'ioredis';
 import neo4j, { Driver } from 'neo4j-driver';
 import { config } from '../config';
 import { seedPaymentGraph } from './graph';
+import fs from 'fs';
+import path from 'path';
 
 export const pool = new Pool({
   connectionString: config.databaseUrl,
   connectionTimeoutMillis: 8000,
   max: 10,
 });
+
+// Initialize database tables
+export async function initializeDatabase(): Promise<void> {
+  try {
+    // Check if tables exist
+    const { rows } = await pool.query(`
+      SELECT table_name FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_name = 'audit_logs'
+    `);
+    
+    if (rows.length === 0) {
+      console.log('🔧 Initializing database tables...');
+      
+      // Read and execute the init.sql script
+      const sqlPath = path.join(__dirname, '../../db/init.sql');
+      if (fs.existsSync(sqlPath)) {
+        const sql = fs.readFileSync(sqlPath, 'utf8');
+        await pool.query(sql);
+        console.log('✅ Database tables initialized successfully');
+      } else {
+        // Fallback: create minimal required tables
+        await pool.query(`
+          CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+          
+          CREATE TABLE IF NOT EXISTS audit_logs (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            event_type VARCHAR(100) NOT NULL,
+            event_description TEXT NOT NULL,
+            actor VARCHAR(100) NOT NULL,
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+          
+          CREATE TABLE IF NOT EXISTS blind_spots (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            title VARCHAR(255) NOT NULL,
+            severity VARCHAR(20) NOT NULL,
+            detection_rate DECIMAL(5,2) NOT NULL,
+            potential_exposure DECIMAL(15,2) NOT NULL,
+            root_cause TEXT NOT NULL,
+            ai_recommendation TEXT NOT NULL,
+            attack_pattern VARCHAR(100),
+            status VARCHAR(50) DEFAULT 'open',
+            discovered_at TIMESTAMPTZ DEFAULT NOW()
+          );
+          
+          CREATE TABLE IF NOT EXISTS risk_metrics (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            model_health DECIMAL(5,2) NOT NULL,
+            transactions_tested BIGINT NOT NULL,
+            blind_spots_count INT NOT NULL,
+            critical_vulnerabilities INT NOT NULL,
+            attacks_blocked_rate DECIMAL(5,2) NOT NULL,
+            recorded_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+        console.log('✅ Minimal database tables created');
+      }
+    } else {
+      console.log('✅ Database tables already exist');
+    }
+  } catch (error) {
+    console.warn('⚠ Failed to initialize database tables:', error);
+  }
+}
 
 // Create Redis client only if the configured URL is valid. In production it's
 // common to forget to set env vars (or accidentally leave placeholder values)
@@ -100,6 +167,9 @@ export async function connectDatabases(): Promise<void> {
     await pool.query('SELECT 1');
     postgresReady = true;
     console.log('✓ PostgreSQL connected');
+    
+    // Initialize database tables if needed
+    await initializeDatabase();
   } catch (err) {
     postgresReady = false;
     console.warn('⚠ PostgreSQL unavailable — using in-memory fallback', (err as Error).message);
