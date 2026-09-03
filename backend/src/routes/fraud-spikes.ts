@@ -276,21 +276,45 @@ router.get('/trends', authMiddleware, async (_req: Request, res: Response) => {
     if (hasLiveSimulationState) {
       const detectionRate = currentSimulation.detection_rate ?? 18;
       const txCount = currentSimulation.transactions_count ?? 42000;
+      const generation = currentSimulation.generation ?? 1;
+      const scenario = currentSimulation.scenario ?? 'Distributed Account Network';
 
+      // Create realistic attack progression over 24 hours based on actual simulation
       const hourlyTrends = Array.from({ length: 24 }, (_, i) => {
         const hourIndex = i;
-        // Create a wave so activity varies across the day
-        const wave = Math.sin((hourIndex / 24) * Math.PI * 2) * 0.25 + 0.75;
-        const intensity = Math.max(0.5, (100 - detectionRate) * wave);
-
-        const fraudEvents = Math.max(1, Math.round(txCount * 0.0008 * intensity));
-        const riskScore = Number(Math.min(9.9, 5 + intensity / 10).toFixed(1));
+        
+        // Simulate attack evolution - more activity in recent hours
+        const timeFromNow = 24 - hourIndex;
+        const attackIntensity = Math.max(0.1, 1 - (timeFromNow / 24));
+        
+        // Attack gets more sophisticated over time
+        const evolutionFactor = 1 + (generation - 1) * 0.15;
+        
+        // Pattern based on actual scenario
+        let patternMultiplier = 1;
+        if (scenario.includes('Distributed')) patternMultiplier = 1.3;
+        if (scenario.includes('Refund')) patternMultiplier = 0.8;
+        if (scenario.includes('Velocity')) patternMultiplier = 1.1;
+        
+        // More fraud events when detection rate is low (successful attacks)
+        const detectionGap = Math.max(0.2, (100 - detectionRate) / 100);
+        const baseEvents = Math.round(txCount * 0.0008 * attackIntensity * evolutionFactor * patternMultiplier * detectionGap);
+        
+        const fraudEvents = Math.max(1, baseEvents + Math.floor(Math.random() * 5 - 2));
+        const riskScore = Number(Math.min(9.9, 3 + (detectionGap * 6) + Math.random() * 0.5).toFixed(1));
 
         return {
           hour: `${hourIndex.toString().padStart(2, '0')}:00`,
           fraudEvents,
           riskScore,
         };
+      });
+
+      console.log('✅ Returning live fraud trends based on simulation:', {
+        scenario,
+        generation,
+        detectionRate,
+        dataPoints: hourlyTrends.length
       });
 
       res.json({ hourlyTrends });
