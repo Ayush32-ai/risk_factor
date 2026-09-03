@@ -122,18 +122,6 @@ export default function AttacksPage() {
               />
               Evolve (+1 Gen)
             </button>
-            <button
-              onClick={() => demoMutation.mutate()}
-              disabled={demoMutation.isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg font-medium transition-colors"
-            >
-              <Icon 
-                icon={demoMutation.isPending ? Loader2 : Play} 
-                className={`w-4 h-4 ${demoMutation.isPending ? 'animate-spin' : ''}`}
-                fallbackClassName="w-4 h-4 bg-white rounded"
-              />
-              Demo Mode
-            </button>
             {(sim?.status === 'running' || sim?.status === 'completed') && (
               <button
                 onClick={() => stopMutation.mutate()}
