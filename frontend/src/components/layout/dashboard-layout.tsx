@@ -23,7 +23,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Mobile menu button - Only visible on small screens */}
       <button
-        onClick={() => setSidebarOpen(true)}
+        onClick={() => {
+          console.log('Menu clicked, opening sidebar');
+          setSidebarOpen(true);
+        }}
         className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
         aria-label="Open menu"
       >
@@ -34,14 +37,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {sidebarOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => {
+            console.log('Backdrop clicked, closing sidebar');
+            setSidebarOpen(false);
+          }}
         />
       )}
 
       {/* Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+        onClose={() => {
+          console.log('Sidebar close called');
+          setSidebarOpen(false);
+        }} 
       />
 
       {/* Main content */}

@@ -145,11 +145,14 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
       </aside>
 
-      {/* Mobile sidebar */}
-      <aside 
-        className={`lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      {/* Mobile sidebar - Using inline styles for reliability */}
+      <div 
+        className="lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl border-r border-gray-200 z-50 overflow-y-auto"
+        style={{
+          transform: isOpen ? 'translateX(0px)' : 'translateX(-100%)',
+          transition: 'transform 300ms ease-in-out',
+          willChange: 'transform'
+        }}
       >
           {/* Mobile header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200/50 flex-shrink-0">
@@ -169,7 +172,10 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={() => {
+                console.log('Close button clicked');
+                onClose?.();
+              }}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0 ml-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Close navigation menu"
             >
@@ -184,13 +190,15 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={handleItemClick}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px]',
+                  onClick={() => {
+                    console.log('Nav item clicked:', item.label);
+                    handleItemClick();
+                  }}
+                  className={
                     isActive 
-                      ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-white/50 hover:shadow-sm active:bg-gray-100'
-                  )}
+                      ? 'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px] bg-blue-50 text-blue-600 border border-blue-200 shadow-sm'
+                      : 'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px] text-gray-600 hover:text-gray-900 hover:bg-white/50 hover:shadow-sm active:bg-gray-100'
+                  }
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
                   <span>{item.label}</span>
@@ -214,7 +222,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <span>Logout</span>
             </button>
           </div>
-        </aside>
+        </div>
     </>
   );
 }
