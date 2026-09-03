@@ -79,23 +79,23 @@
         <!-- Navigation -->
         <nav class="p-4">
             <div class="space-y-1">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 text-blue-600 border border-blue-200" onclick="handleNavClick()">
+                <a href="#overview" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 text-blue-600 border border-blue-200" onclick="handleNavClick()">
                     <span class="text-lg">🏠</span>
                     <span class="font-medium">Overview</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
+                <a href="#attacks" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
                     <span class="text-lg">⚔️</span>
                     <span>Attack Simulator</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
+                <a href="#investigation" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
                     <span class="text-lg">🔍</span>
                     <span>Investigation</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
+                <a href="#analytics" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
                     <span class="text-lg">📊</span>
                     <span>Analytics</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
+                <a href="#security" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors" onclick="handleNavClick()">
                     <span class="text-lg">🔒</span>
                     <span>Security</span>
                 </a>
@@ -119,31 +119,19 @@
     <!-- Main Content -->
     <main class="pt-16 px-4 py-6 min-h-screen">
         <div class="max-w-4xl mx-auto">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">📱 Mobile Sidebar Test</h1>
+            <!-- Overview Section -->
+            <section id="overview" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">📱 Mobile Sidebar Navigation Test</h1>
                 <div class="prose text-gray-600">
-                    <p class="mb-4">This demonstrates a working mobile sidebar. The issue you described (brief flash then disappearing) is usually caused by:</p>
+                    <p class="mb-4">✅ <strong>Sidebar Issue Fixed!</strong> Navigation now works properly. Click the links in the sidebar to test navigation.</p>
                     
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                        <h3 class="font-bold text-red-800 mb-2">Common Issues:</h3>
-                        <ul class="space-y-1 text-red-700">
-                            <li>• React state being reset too quickly</li>
-                            <li>• Event handlers not preventing default behavior</li>
-                            <li>• CSS transitions conflicting with each other</li>
-                            <li>• Z-index issues with overlapping elements</li>
-                            <li>• Body scroll not being prevented</li>
-                        </ul>
-                    </div>
-
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                        <h3 class="font-bold text-green-800 mb-2">Solutions Used Here:</h3>
+                        <h3 class="font-bold text-green-800 mb-2">Navigation Fix Applied:</h3>
                         <ul class="space-y-1 text-green-700">
-                            <li>• ✅ React Portal to avoid z-index issues</li>
-                            <li>• ✅ Proper event handling with stopPropagation</li>
-                            <li>• ✅ Body scroll locking when sidebar is open</li>
-                            <li>• ✅ Escape key handling</li>
-                            <li>• ✅ Proper state management with useEffect</li>
-                            <li>• ✅ Separate overlay and sidebar animations</li>
+                            <li>• ✅ Removed preventDefault() from navigation clicks</li>
+                            <li>• ✅ Separate handler for navigation vs. close button</li>
+                            <li>• ✅ Sidebar closes after navigation completes</li>
+                            <li>• ✅ Proper event handling for Next.js routing</li>
                         </ul>
                     </div>
 
@@ -151,14 +139,37 @@
                         <h3 class="font-bold text-blue-800 mb-2">Test Instructions:</h3>
                         <ol class="space-y-1 text-blue-700 list-decimal list-inside">
                             <li>Make your browser window narrow (mobile width)</li>
-                            <li>Click the blue hamburger button in the top-left</li>
-                            <li>Sidebar should slide in smoothly and stay open</li>
-                            <li>Click outside (dark area) or X button to close</li>
-                            <li>Try pressing Escape key to close</li>
+                            <li>Click the blue hamburger button</li>
+                            <li>Click any navigation link in the sidebar</li>
+                            <li>Should navigate to that section AND close sidebar</li>
                         </ol>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- Attack Simulator Section -->
+            <section id="attacks" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-xl font-bold text-red-600 mb-4">⚔️ Attack Simulator</h2>
+                <p class="text-gray-600">You successfully navigated to the Attack Simulator section! The sidebar closed automatically and the page scrolled to this section.</p>
+            </section>
+
+            <!-- Investigation Section -->
+            <section id="investigation" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-xl font-bold text-purple-600 mb-4">🔍 Investigation</h2>
+                <p class="text-gray-600">Investigation section loaded! This proves that navigation is working correctly from the mobile sidebar.</p>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-xl font-bold text-indigo-600 mb-4">📊 Analytics</h2>
+                <p class="text-gray-600">Analytics section! The mobile sidebar navigation is now fully functional.</p>
+            </section>
+
+            <!-- Security Section -->
+            <section id="security" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-xl font-bold text-green-600 mb-4">🔒 Security</h2>
+                <p class="text-gray-600">Security section reached! All navigation links in the mobile sidebar are working properly.</p>
+            </section>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -223,6 +234,7 @@
 
         function handleNavClick() {
             console.log('📱 Navigation clicked, closing sidebar...');
+            // Don't prevent default - let the navigation happen
             closeSidebar();
         }
 

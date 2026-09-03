@@ -126,12 +126,12 @@ export default function AttacksPage() {
               <button
                 onClick={() => stopMutation.mutate()}
                 disabled={stopMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-500 hover:bg-blue-50 disabled:opacity-50 rounded-lg font-medium transition-colors text-black"
               >
                 <Icon 
                   icon={stopMutation.isPending ? Loader2 : AlertTriangle} 
-                  className={`w-4 h-4 ${stopMutation.isPending ? 'animate-spin' : ''}`}
-                  fallbackClassName="w-4 h-4 bg-white rounded"
+                  className={`w-4 h-4 text-black ${stopMutation.isPending ? 'animate-spin' : ''}`}
+                  fallbackClassName="w-4 h-4 bg-black rounded"
                 />
                 Stop
               </button>
