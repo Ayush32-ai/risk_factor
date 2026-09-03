@@ -147,7 +147,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
       {/* Mobile sidebar */}
       <aside 
-        className={`lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
