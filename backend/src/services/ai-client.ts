@@ -35,12 +35,68 @@ export async function runAttackSimulation(scenario: string, generation = 1) {
     '/api/simulate/attack',
     { scenario, generation }
   );
-  return result ?? {
+  
+  if (result) {
+    return result;
+  }
+
+  // Realistic attack simulation with proper difficulty progression
+  const scenarioDifficulty = getScenarioDifficulty(scenario);
+  const baseDetectionRate = scenarioDifficulty.baseDetection;
+  const evolutionBonus = Math.min(generation * scenarioDifficulty.evolutionRate, scenarioDifficulty.maxEvolution);
+  const randomVariation = (Math.random() - 0.5) * scenarioDifficulty.variance;
+  
+  let detectionRate = Math.max(5, Math.min(95, baseDetectionRate - evolutionBonus + randomVariation));
+  
+  // Round to 1 decimal place for realism
+  detectionRate = Math.round(detectionRate * 10) / 10;
+  
+  return {
     ...mockData.attackSimulation,
     scenario,
     generation,
-    detection_rate: Math.max(15, 25 - generation * 0.4 + Math.random() * 5),
+    detection_rate: detectionRate,
+    transactions_count: Math.floor(20000 + Math.random() * 80000 + generation * 5000),
+    accounts_count: Math.floor(50 + Math.random() * 400 + generation * 20),
+    merchants_count: Math.floor(10 + Math.random() * 40 + generation * 3),
   };
+}
+
+function getScenarioDifficulty(scenario: string) {
+  const difficulties = {
+    'Distributed Account Network': {
+      baseDetection: 85,  // Starts with good detection
+      evolutionRate: 5,   // Loses 5% per generation  
+      maxEvolution: 35,   // Max 35% reduction
+      variance: 20        // ±20% random variation
+    },
+    'Refund Loop Exploitation': {
+      baseDetection: 90,  // Easier to detect initially
+      evolutionRate: 4,   // Slower evolution
+      maxEvolution: 30,   
+      variance: 15
+    },
+    'Merchant Cluster Abuse': {
+      baseDetection: 75,  // Moderate starting detection
+      evolutionRate: 7,   // Moderate evolution
+      maxEvolution: 40,
+      variance: 25
+    },
+    'Velocity Limit Bypass': {
+      baseDetection: 88,
+      evolutionRate: 3,   // Very slow evolution - this attack is well-understood
+      maxEvolution: 25,
+      variance: 12
+    },
+    'Device Fingerprint Rotation': {
+      baseDetection: 70,  // Hardest to detect from start
+      evolutionRate: 8,   // Fast evolution
+      maxEvolution: 45,
+      variance: 22
+    }
+  };
+
+  return difficulties[scenario as keyof typeof difficulties] || difficulties['Distributed Account Network'];
 }
 
 export async function runDefenseSimulation(blindSpotId: string, attackPattern?: string, currentDetectionRate?: number) {

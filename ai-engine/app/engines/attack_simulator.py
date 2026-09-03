@@ -13,34 +13,49 @@ except Exception:
 
 ATTACK_SCENARIOS = {
     "Distributed Account Network": {
-        "base_detection": 25.0,
-        "evolution_rate": -0.4,
+        "base_detection": 85.0,  # Starts with good detection
+        "evolution_rate": -5.0,   # Loses 5% per generation
+        "max_evolution": 35,      # Max 35% reduction
+        "variance": 20,           # ±20% random variation
         "tx_multiplier": 5000,
         "account_multiplier": 25,
+        "blind_spot_threshold": 20,  # Conservative threshold
     },
     "Refund Loop Exploitation": {
-        "base_detection": 28.0,
-        "evolution_rate": -0.35,
+        "base_detection": 90.0,  # Easier to detect initially
+        "evolution_rate": -4.0,   # Slower evolution
+        "max_evolution": 30,
+        "variance": 15,
         "tx_multiplier": 3000,
         "account_multiplier": 15,
+        "blind_spot_threshold": 25,
     },
     "Merchant Cluster Abuse": {
-        "base_detection": 35.0,
-        "evolution_rate": -0.3,
+        "base_detection": 75.0,  # Moderate starting detection
+        "evolution_rate": -7.0,   # Moderate evolution
+        "max_evolution": 40,
+        "variance": 25,
         "tx_multiplier": 4000,
         "account_multiplier": 20,
+        "blind_spot_threshold": 30,  # Higher threshold - easier to find blind spots
     },
     "Velocity Limit Bypass": {
-        "base_detection": 40.0,
-        "evolution_rate": -0.25,
+        "base_detection": 88.0,
+        "evolution_rate": -3.0,   # Very slow evolution - well understood attack
+        "max_evolution": 25,
+        "variance": 12,
         "tx_multiplier": 6000,
         "account_multiplier": 30,
+        "blind_spot_threshold": 15,  # Very conservative
     },
     "Device Fingerprint Rotation": {
-        "base_detection": 45.0,
-        "evolution_rate": -0.2,
+        "base_detection": 70.0,  # Hardest to detect from start
+        "evolution_rate": -8.0,   # Fast evolution
+        "max_evolution": 45,
+        "variance": 22,
         "tx_multiplier": 2000,
         "account_multiplier": 10,
+        "blind_spot_threshold": 35,  # Highest threshold
     },
 }
 
@@ -103,22 +118,39 @@ class AttackSimulator:
     
     def simulate(self, scenario: str, generation: int = 1) -> Dict:
         config = ATTACK_SCENARIOS.get(scenario, ATTACK_SCENARIOS["Distributed Account Network"])
-        detection_rate = max(
-            12.0,
-            config["base_detection"] + config["evolution_rate"] * generation + random.uniform(-2, 2),
-        )
+        
+        # Calculate detection rate with realistic progression
+        evolution_reduction = min(generation * abs(config["evolution_rate"]), config["max_evolution"])
+        random_variation = (random.random() - 0.5) * config["variance"]
+        detection_rate = max(5.0, min(95.0, 
+            config["base_detection"] - evolution_reduction + random_variation
+        ))
+        detection_rate = round(detection_rate, 1)
+        
+        # Intelligent blind spot calculation
+        threshold = config["blind_spot_threshold"]
+        generation_bonus = min(generation * 1.5, 8)  # Max 8% bonus at gen 5+
+        adjusted_threshold = threshold + generation_bonus
+        random_factor = (random.random() - 0.5) * 15  # ±7.5% random variation
+        final_threshold = adjusted_threshold + random_factor
+        
+        # Additional random chance - sometimes attacks just fail
+        random_failure = random.random() < 0.15  # 15% chance attack fails
+        blind_spot_discovered = False
+        if not (random_failure and detection_rate > threshold * 0.7):
+            blind_spot_discovered = detection_rate < final_threshold
 
         result = {
             "id": f"sim-{random.randint(1000, 9999)}",
             "target": "Payment Risk Engine",
             "scenario": scenario,
             "generation": generation,
-            "transactions_count": config["tx_multiplier"] * generation + random.randint(1000, 5000),
-            "accounts_count": config["account_multiplier"] * generation + random.randint(10, 50),
+            "transactions_count": config["tx_multiplier"] * generation + random.randint(1000, 15000),
+            "accounts_count": config["account_multiplier"] * generation + random.randint(20, 80),
             "merchants_count": random.randint(15, 45),
-            "detection_rate": round(detection_rate, 1),
+            "detection_rate": detection_rate,
             "status": "running",
-            "blind_spot_discovered": detection_rate < 30,
+            "blind_spot_discovered": blind_spot_discovered,
             "start_time": "2024-08-24T02:00:00Z",
             "metrics": {
                 "accounts_compromised": int(config["account_multiplier"] * generation),

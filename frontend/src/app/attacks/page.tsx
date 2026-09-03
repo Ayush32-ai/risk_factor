@@ -84,7 +84,9 @@ export default function AttacksPage() {
 
   const sim = data?.simulation as Record<string, unknown> | undefined;
   const detectionRate = Number(sim?.detection_rate ?? 21.4);
-  const isBlindSpot = sim?.blind_spot_discovered || detectionRate < 30;
+  const blindSpotDiscovered = sim?.blind_spot_discovered === true;
+  // Use the backend's calculation instead of frontend threshold
+  const isBlindSpot = blindSpotDiscovered;
 
   return (
     <DashboardLayout>
@@ -98,6 +100,18 @@ export default function AttacksPage() {
             <p className="text-sentinel-muted mt-1">Red-team engine that discovers detection blind spots</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={() => demoMutation.mutate()}
+              disabled={demoMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg font-medium transition-colors"
+            >
+              <Icon 
+                icon={demoMutation.isPending ? Loader2 : Play} 
+                className={`w-4 h-4 ${demoMutation.isPending ? 'animate-spin' : ''}`}
+                fallbackClassName="w-4 h-4 bg-white rounded"
+              />
+              Demo Attack
+            </button>
             <button
               onClick={() => startMutation.mutate()}
               disabled={startMutation.isPending}
@@ -174,7 +188,13 @@ export default function AttacksPage() {
                   <h2 className="text-xl font-bold font-mono">
                     Generation {String(sim?.generation ?? 17)}
                   </h2>
-                  <span className={`text-2xl font-bold font-mono ${detectionRate < 30 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  <span className={`text-2xl font-bold font-mono ${
+                    detectionRate < 30 ? 'text-red-500' : 
+                    detectionRate < 50 ? 'text-orange-500' : 
+                    detectionRate < 70 ? 'text-yellow-500' : 
+                    detectionRate < 85 ? 'text-blue-500' : 
+                    'text-emerald-500'
+                  }`}>
                     {detectionRate.toFixed(1)}% detected
                   </span>
                 </div>
@@ -202,7 +222,7 @@ export default function AttacksPage() {
 
                 <ProgressBar
                   value={detectionRate}
-                  variant={detectionRate < 30 ? 'danger' : 'success'}
+                  variant={detectionRate < 30 ? 'danger' : detectionRate < 60 ? 'warning' : 'success'}
                   label="Detection Rate"
                 />
               </>
@@ -225,8 +245,45 @@ export default function AttacksPage() {
                 <div>
                   <h3 className="text-lg font-bold text-red-600">BLIND SPOT DISCOVERED</h3>
                   <p className="text-slate-800 mt-1">
-                    Attack successfully bypassed current detection model.
-                    Detection rate of {detectionRate.toFixed(1)}% indicates a critical gap in the risk engine.
+                    {detectionRate < 20 
+                      ? `Critical vulnerability detected! Attack achieved ${detectionRate.toFixed(1)}% detection rate, indicating a severe gap in defense systems.`
+                      : detectionRate < 35
+                      ? `Significant blind spot found. Detection rate of ${detectionRate.toFixed(1)}% suggests attackers can exploit this pattern with high success.`
+                      : `Potential vulnerability identified. ${detectionRate.toFixed(1)}% detection rate indicates room for improvement in this attack scenario.`
+                    }
+                  </p>
+                  <p className="text-slate-600 text-sm mt-2">
+                    Scenario: {String(sim?.scenario ?? selectedScenario)} · Generation {String(sim?.generation ?? 17)}
+                    {Number(sim?.generation) > 1 && ` · Evolved attack pattern`}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          {!isBlindSpot && sim?.status && sim?.status !== 'idle' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white border border-emerald-200 rounded-xl shadow-sm p-5"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-lg bg-emerald-100">
+                  <Icon 
+                    icon={AlertTriangle} 
+                    className="w-6 h-6 text-emerald-600 rotate-180" 
+                    fallbackClassName="w-6 h-6 bg-emerald-600 rounded"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-emerald-600">ATTACK NEUTRALIZED</h3>
+                  <p className="text-slate-800 mt-1">
+                    {detectionRate > 80 
+                      ? `Excellent defense! ${detectionRate.toFixed(1)}% detection rate shows the security system effectively identified and blocked this attack pattern.`
+                      : detectionRate > 60
+                      ? `Good defense coverage. ${detectionRate.toFixed(1)}% detection rate indicates solid protection against this attack scenario.`
+                      : `Moderate defense effectiveness. ${detectionRate.toFixed(1)}% detection rate provides acceptable coverage but could be improved.`
+                    }
                   </p>
                   <p className="text-slate-600 text-sm mt-2">
                     Scenario: {String(sim?.scenario ?? selectedScenario)} · Generation {String(sim?.generation ?? 17)}

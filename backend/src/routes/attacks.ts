@@ -18,6 +18,37 @@ const simulateSchema = z.object({
 
 const SIM_KEY = 'sentinel:current_simulation';
 
+// Intelligent blind spot detection based on multiple factors
+function calculateBlindSpotDiscovery(detectionRate: number, generation: number, scenario: string): boolean {
+  // Base threshold varies by scenario - higher thresholds make blind spots rarer
+  const scenarioThresholds = {
+    'Distributed Account Network': 20,  // Conservative - need very low detection
+    'Refund Loop Exploitation': 25,     // Moderate threshold 
+    'Merchant Cluster Abuse': 30,       // Higher threshold - easier to find blind spots
+    'Velocity Limit Bypass': 15,        // Very conservative - this is well-defended
+    'Device Fingerprint Rotation': 35,  // Highest threshold - often has blind spots
+  };
+  
+  const threshold = scenarioThresholds[scenario as keyof typeof scenarioThresholds] || 25;
+  
+  // Generation factor - higher generations get slight bonus but diminishing returns
+  const generationBonus = Math.min(generation * 1.5, 8); // Max 8% bonus at gen 5+
+  const adjustedThreshold = threshold + generationBonus;
+  
+  // Add significant randomness - 30% of blind spot discovery is pure chance
+  const randomFactor = (Math.random() - 0.5) * 15; // ±7.5% random variation
+  const finalThreshold = adjustedThreshold + randomFactor;
+  
+  // Additional random chance - sometimes attacks just fail regardless of detection rate
+  const randomFailure = Math.random() < 0.15; // 15% chance attack just fails
+  if (randomFailure && detectionRate > threshold * 0.7) {
+    return false; // Attack failed to find blind spot despite low detection
+  }
+  
+  // Blind spot discovered if detection rate is below the dynamic threshold
+  return detectionRate < finalThreshold;
+}
+
 export async function initializeAttackState() {
   try {
     if (isRedisReady()) {
@@ -114,6 +145,10 @@ router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: 
   await logAuditEvent('simulation_started', `Attack simulation started — ${scenario}`, 'AI');
 
   const result = await runAttackSimulation(scenario, generation);
+  
+  // More intelligent blind spot detection
+  const isBlindSpot = calculateBlindSpotDiscovery(result.detection_rate, generation, scenario);
+  
   const simObj = {
     id: result.id || `sim-${Date.now()}`,
     target,
@@ -124,7 +159,7 @@ router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: 
     merchants_count: result.merchants_count,
     detection_rate: result.detection_rate,
     status: 'completed',
-    blind_spot_discovered: result.detection_rate < 30,
+    blind_spot_discovered: isBlindSpot,
   };
   setCurrentSimulation(simObj);
 
@@ -151,13 +186,19 @@ router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
   const nextGen = (current.generation || 1) + 1;
   const result = await runAttackSimulation(current.scenario, nextGen);
 
+  // Calculate evolved metrics with more realistic progression
+  const baseTransactions = result.transactions_count || current.transactions_count || 25000;
+  const baseAccounts = result.accounts_count || current.accounts_count || 100;
+  const baseMerchants = result.merchants_count || current.merchants_count || 15;
+  
   const evolved = {
     ...current,
     generation: nextGen,
-    transactions_count: (result.transactions_count || 0) + Math.floor(Math.random() * 5000),
-    accounts_count: (result.accounts_count || 0) + Math.floor(Math.random() * 20),
-    detection_rate: Math.max(12, (result.detection_rate || 18) - Math.random() * 2),
-    blind_spot_discovered: (result.detection_rate || 0) < 30,
+    transactions_count: Math.floor(baseTransactions + Math.random() * 10000 + nextGen * 2000),
+    accounts_count: Math.floor(baseAccounts + Math.random() * 30 + nextGen * 8),
+    merchants_count: Math.floor(baseMerchants + Math.random() * 8 + nextGen * 2),
+    detection_rate: result.detection_rate,
+    blind_spot_discovered: calculateBlindSpotDiscovery(result.detection_rate, nextGen, current.scenario),
   };
 
   setCurrentSimulation(evolved);
@@ -173,18 +214,22 @@ router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
 
 router.post('/start/demo', authMiddleware, async (_req: Request, res: Response) => {
   try {
-    // Create a demo simulation with realistic data
+    // Create a demo simulation with realistic data that may or may not show blind spot
+    const demoDetectionRate = 35 + Math.random() * 50; // 35-85% range - much wider and higher
+    const demoGeneration = Math.floor(1 + Math.random() * 3); // Gen 1-3 for demo
+    const demoScenario = 'Distributed Account Network';
+    
     const demoSim = {
       id: `demo-${Date.now()}`,
       target: 'Payment Risk Engine',
-      scenario: 'Distributed Account Network',
-      generation: 3,
-      transactions_count: 45000,
-      accounts_count: 127,
-      merchants_count: 23,
-      detection_rate: 18.5, // Low detection rate to trigger blind spots and spikes
+      scenario: demoScenario,
+      generation: demoGeneration,
+      transactions_count: Math.floor(30000 + Math.random() * 40000),
+      accounts_count: Math.floor(80 + Math.random() * 100),
+      merchants_count: Math.floor(15 + Math.random() * 25),
+      detection_rate: Math.round(demoDetectionRate * 10) / 10,
       status: 'running',
-      blind_spot_discovered: true,
+      blind_spot_discovered: calculateBlindSpotDiscovery(demoDetectionRate, demoGeneration, demoScenario),
     };
 
     setCurrentSimulation(demoSim);
