@@ -41,10 +41,9 @@ const navItems = [
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
-  isMounted?: boolean;
 }
 
-export function Sidebar({ isOpen = true, onClose, isMounted = true }: SidebarProps) {
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -147,14 +146,11 @@ export function Sidebar({ isOpen = true, onClose, isMounted = true }: SidebarPro
       </aside>
 
       {/* Mobile sidebar */}
-      {isMounted && (
-        <aside 
-          className={cn(
-            "lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white/98 backdrop-blur-md border-r border-gray-200/50 shadow-2xl overflow-y-auto transition-all duration-300 ease-in-out",
-            isOpen ? "translate-x-0 z-50" : "-translate-x-full -z-10"
-          )}
-          aria-hidden={!isOpen}
-        >
+      <aside 
+        className={`lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
           {/* Mobile header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200/50 flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -173,10 +169,7 @@ export function Sidebar({ isOpen = true, onClose, isMounted = true }: SidebarPro
               </div>
             </div>
             <button
-              onClick={() => {
-                console.log('Close button clicked');
-                onClose?.();
-              }}
+              onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0 ml-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Close navigation menu"
             >
@@ -191,10 +184,7 @@ export function Sidebar({ isOpen = true, onClose, isMounted = true }: SidebarPro
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => {
-                    console.log('Nav item clicked:', item.label);
-                    handleItemClick();
-                  }}
+                  onClick={handleItemClick}
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px]',
                     isActive 
@@ -225,7 +215,6 @@ export function Sidebar({ isOpen = true, onClose, isMounted = true }: SidebarPro
             </button>
           </div>
         </aside>
-      )}
     </>
   );
 }
