@@ -15,7 +15,7 @@ import graphRoutes from './routes/graph';
 import blindspotRoutes from './routes/blindspots';
 import defenseRoutes from './routes/defense';
 import auditRoutes from './routes/audit';
-import fraudSpikesRoutes from './routes/fraud-spikes';
+import fraudSpikesRoutes, { initializeFraudSpikeHistory } from './routes/fraud-spikes';
 import returnsRoutes from './routes/returns';
 import chargebacksRoutes from './routes/chargebacks';
 import mlEvaluationRoutes from './routes/ml-evaluation';
@@ -91,6 +91,14 @@ async function start() {
     await initializeAttackState();
   } catch (err) {
     console.warn('⚠ Failed to initialize attack state from persistence', err);
+  }
+
+  // Initialize fraud spike history with baseline data
+  try {
+    initializeFraudSpikeHistory();
+    console.log('✅ Fraud spike history initialized');
+  } catch (err) {
+    console.warn('⚠ Failed to initialize fraud spike history', err);
   }
 
   const wss = setupWebSocket(server);

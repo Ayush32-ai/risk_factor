@@ -6,6 +6,105 @@ import { callAiEngine } from '../services/ai-client';
 import { logAuditEvent } from '../services/metrics';
 import { getCurrentSimulation } from '../state/simulation';
 
+// In-memory fraud spike history storage
+interface FraudSpikeHistoryEntry {
+  id: string;
+  timestamp: Date;
+  pattern: string;
+  severity: 'high' | 'medium' | 'low';
+  confidence: number;
+  transactions: number;
+  timeframe: string;
+  riskScore: number;
+  simulationId: string;
+  generation: number;
+  scenario: string;
+}
+
+let fraudSpikeHistory: FraudSpikeHistoryEntry[] = [];
+
+// Helper functions for managing fraud spike history
+export function addFraudSpikeToHistory(spike: Omit<FraudSpikeHistoryEntry, 'id' | 'timestamp'>) {
+  const entry: FraudSpikeHistoryEntry = {
+    id: `spike-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    timestamp: new Date(),
+    ...spike,
+  };
+  
+  fraudSpikeHistory.push(entry);
+  
+  // Keep only last 100 entries to prevent memory issues
+  if (fraudSpikeHistory.length > 100) {
+    fraudSpikeHistory = fraudSpikeHistory.slice(-100);
+  }
+  
+  console.log(`📊 Added fraud spike to history: ${spike.pattern} (Total entries: ${fraudSpikeHistory.length})`);
+}
+
+export function getFraudSpikeHistory(limit: number = 20): FraudSpikeHistoryEntry[] {
+  // Return most recent entries first
+  return fraudSpikeHistory
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, limit);
+}
+
+export function clearFraudSpikeHistory() {
+  fraudSpikeHistory = [];
+  console.log('🗑️ Cleared fraud spike history');
+}
+
+// Initialize with some baseline fraud activity
+export function initializeFraudSpikeHistory() {
+  if (fraudSpikeHistory.length === 0) {
+    const baselineSpikes = [
+      {
+        pattern: 'Card Testing Activity',
+        severity: 'medium' as 'high' | 'medium' | 'low',
+        confidence: 78.5,
+        transactions: 145,
+        timeframe: '2 hours ago',
+        riskScore: 6.2,
+        simulationId: 'baseline-activity',
+        generation: 0,
+        scenario: 'Background Activity',
+      },
+      {
+        pattern: 'Unusual Login Pattern',
+        severity: 'low' as 'high' | 'medium' | 'low',
+        confidence: 65.3,
+        transactions: 67,
+        timeframe: '3 hours ago',
+        riskScore: 4.8,
+        simulationId: 'baseline-activity',
+        generation: 0,
+        scenario: 'Background Activity',
+      },
+      {
+        pattern: 'Velocity Anomaly',
+        severity: 'medium' as 'high' | 'medium' | 'low',
+        confidence: 72.1,
+        transactions: 203,
+        timeframe: '4 hours ago',
+        riskScore: 5.9,
+        simulationId: 'baseline-activity',
+        generation: 0,
+        scenario: 'Background Activity',
+      },
+    ];
+
+    baselineSpikes.forEach(spike => {
+      const entry: FraudSpikeHistoryEntry = {
+        id: `baseline-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date(Date.now() - Math.random() * 4 * 60 * 60 * 1000), // Random time in last 4 hours
+        ...spike,
+      };
+      fraudSpikeHistory.push(entry);
+    });
+
+    console.log(`📊 Initialized fraud spike history with ${baselineSpikes.length} baseline entries`);
+  }
+}
+
 const router = Router();
 
 const analyzeSchema = z.object({
@@ -68,6 +167,7 @@ export function buildLiveFraudSpikeDashboard(simulation: {
   const scenario = simulation.scenario || 'Distributed Account Network';
   const txCount = simulation.transactions_count ?? 42000;
   const generation = simulation.generation ?? 1;
+  const simulationId = `sim-${scenario}-${generation}`;
 
   // Create realistic, time-based fraud spikes based on actual attack progression
   const now = new Date();
@@ -77,7 +177,7 @@ export function buildLiveFraudSpikeDashboard(simulation: {
   const secondarySeverity = detectionRate < 30 ? 'high' : 'medium';
   const tertiarySeverity = detectionRate < 20 ? 'high' : detectionRate < 40 ? 'medium' : 'low';
   
-  const baseSpikes = [
+  const currentSpikes = [
     {
       pattern: scenario, // Use actual scenario name
       severity: primarySeverity as 'high' | 'medium' | 'low',
@@ -106,9 +206,9 @@ export function buildLiveFraudSpikeDashboard(simulation: {
 
   // Add scenario-specific spikes
   if (scenario.includes('Refund')) {
-    baseSpikes.push({
+    currentSpikes.push({
       pattern: 'Circular Refund Pattern',
-      severity: 'high' as const,
+      severity: 'high' as 'high' | 'medium' | 'low',
       confidence: Math.min(94, 85 + (100 - detectionRate) / 4),
       transactions: Math.round(txCount * 0.05),
       timeframe: `${Math.floor(15 + generation * 3)}min ago`,
@@ -117,9 +217,9 @@ export function buildLiveFraudSpikeDashboard(simulation: {
   }
 
   if (scenario.includes('Velocity')) {
-    baseSpikes.push({
+    currentSpikes.push({
       pattern: 'High-Velocity Transaction Burst',
-      severity: 'high' as const,
+      severity: 'high' as 'high' | 'medium' | 'low',
       confidence: Math.min(98, 88 + (100 - detectionRate) / 5),
       transactions: Math.round(txCount * 0.08),
       timeframe: `${Math.floor(8 + generation * 2)}min ago`,
@@ -128,9 +228,9 @@ export function buildLiveFraudSpikeDashboard(simulation: {
   }
 
   if (scenario.includes('Device')) {
-    baseSpikes.push({
+    currentSpikes.push({
       pattern: 'Fingerprint Rotation Attack',
-      severity: 'high' as const,
+      severity: 'high' as 'high' | 'medium' | 'low',
       confidence: Math.min(95, 80 + (100 - detectionRate) / 3),
       transactions: Math.round(txCount * 0.06),
       timeframe: `${Math.floor(12 + generation * 4)}min ago`,
@@ -138,10 +238,44 @@ export function buildLiveFraudSpikeDashboard(simulation: {
     });
   }
 
+  // Add current spikes to history (but avoid duplicates)
+  const existingPatterns = new Set(fraudSpikeHistory.slice(-10).map(h => `${h.pattern}-${h.generation}-${h.simulationId}`));
+  
+  currentSpikes.forEach(spike => {
+    const patternKey = `${spike.pattern}-${generation}-${simulationId}`;
+    if (!existingPatterns.has(patternKey)) {
+      addFraudSpikeToHistory({
+        ...spike,
+        simulationId,
+        generation,
+        scenario,
+      });
+    }
+  });
+
+  // Get recent history (last 15 entries) and combine with current spikes
+  const recentHistory = getFraudSpikeHistory(15);
+  
+  // Convert history entries to the expected format
+  const historicalSpikes = recentHistory.map(entry => ({
+    pattern: entry.pattern,
+    severity: entry.severity,
+    confidence: entry.confidence,
+    transactions: entry.transactions,
+    timeframe: entry.timeframe,
+    riskScore: entry.riskScore,
+  }));
+
+  // Combine current spikes with historical data, removing duplicates
+  const allSpikes = [...currentSpikes, ...historicalSpikes];
+  const uniqueSpikes = allSpikes.filter((spike, index, arr) => 
+    arr.findIndex(s => s.pattern === spike.pattern && s.timeframe === spike.timeframe) === index
+  );
+
   return {
-    totalSpikes: Math.max(3, Math.round(baseSpikes.length + (100 - detectionRate) / 3)),
-    highRiskSpikes: Math.max(2, Math.round(baseSpikes.filter((spike) => spike.severity === 'high').length + (simulation.blind_spot_discovered ? 1 : 0))),
-    averageConfidence: Number((baseSpikes.reduce((sum, spike) => sum + spike.confidence, 0) / baseSpikes.length).toFixed(1)),
+    totalSpikes: Math.max(3, Math.round(currentSpikes.length + (100 - detectionRate) / 3)),
+    highRiskSpikes: Math.max(2, Math.round(uniqueSpikes.filter((spike) => spike.severity === 'high').length + (simulation.blind_spot_discovered ? 1 : 0))),
+    averageConfidence: Number((currentSpikes.reduce((sum, spike) => sum + spike.confidence, 0) / currentSpikes.length).toFixed(1)),
     transactionsAffected: Math.max(700, Math.round(txCount * 0.18)),
     patternBreakdown: [
       { pattern: 'Account Takeover', count: Math.max(4, 8 + generation) },
@@ -149,7 +283,7 @@ export function buildLiveFraudSpikeDashboard(simulation: {
       { pattern: 'Device Rotation', count: Math.max(2, 5 + generation) },
       { pattern: 'Card Testing', count: Math.max(1, 4 + Math.floor(generation / 2)) },
     ],
-    recentSpikes: baseSpikes,
+    recentSpikes: uniqueSpikes.slice(0, 20), // Show up to 20 most recent spikes including history
     attackContext: {
       activeAttack,
       attackScenario: activeAttack ? scenario : 'None',
@@ -161,13 +295,33 @@ export function buildLiveFraudSpikeDashboard(simulation: {
 }
 
 export function buildFallbackDashboardResponse() {
+  // Even in fallback mode, include historical fraud spikes if available
+  initializeFraudSpikeHistory();
+  const recentHistory = getFraudSpikeHistory(10);
+  
+  const historicalSpikes = recentHistory.map(entry => ({
+    pattern: entry.pattern,
+    severity: entry.severity,
+    confidence: entry.confidence,
+    transactions: entry.transactions,
+    timeframe: entry.timeframe,
+    riskScore: entry.riskScore,
+  }));
+
   return {
-    totalSpikes: 0,
-    highRiskSpikes: 0,
-    averageConfidence: 0,
-    transactionsAffected: 0,
-    patternBreakdown: [],
-    recentSpikes: [],
+    totalSpikes: historicalSpikes.length,
+    highRiskSpikes: historicalSpikes.filter(spike => spike.severity === 'high').length,
+    averageConfidence: historicalSpikes.length > 0 
+      ? Number((historicalSpikes.reduce((sum, spike) => sum + spike.confidence, 0) / historicalSpikes.length).toFixed(1))
+      : 0,
+    transactionsAffected: historicalSpikes.reduce((sum, spike) => sum + spike.transactions, 0),
+    patternBreakdown: [
+      { pattern: 'Account Takeover', count: 2 },
+      { pattern: 'Payment Velocity', count: 1 },
+      { pattern: 'Device Rotation', count: 1 },
+      { pattern: 'Card Testing', count: 3 },
+    ],
+    recentSpikes: historicalSpikes,
     attackContext: {
       activeAttack: false,
       attackScenario: 'None',
@@ -206,12 +360,19 @@ router.get('/debug', authMiddleware, async (_req: Request, res: Response) => {
     transactions_count: currentSimulation?.transactions_count,
   };
 
+  const historyEntries = getFraudSpikeHistory(10);
+
   if (hasLiveSimulationState) {
     const liveDashboard = buildLiveFraudSpikeDashboard(simulation);
     res.json({
       status: 'LIVE_SIMULATION_ACTIVE',
       currentSimulation,
       hasLiveSimulationState,
+      fraudSpikeHistory: {
+        totalEntries: fraudSpikeHistory.length,
+        recentEntries: historyEntries.length,
+        sample: historyEntries.slice(0, 3)
+      },
       liveDashboardSample: {
         recentSpikesCount: liveDashboard.recentSpikes.length,
         firstSpike: liveDashboard.recentSpikes[0],
@@ -223,14 +384,40 @@ router.get('/debug', authMiddleware, async (_req: Request, res: Response) => {
       status: 'NO_ACTIVE_SIMULATION',
       currentSimulation,
       hasLiveSimulationState,
+      fraudSpikeHistory: {
+        totalEntries: fraudSpikeHistory.length,
+        recentEntries: historyEntries.length,
+        sample: historyEntries.slice(0, 3)
+      },
       message: 'Start an attack simulation to see live fraud spikes'
     });
   }
 });
 
+// History management endpoint
+router.get('/history', authMiddleware, async (req: Request, res: Response) => {
+  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
+  const history = getFraudSpikeHistory(limit);
+  
+  res.json({
+    history,
+    totalEntries: fraudSpikeHistory.length,
+    returned: history.length,
+  });
+});
+
+// Clear history endpoint (for testing)
+router.delete('/history', authMiddleware, async (_req: Request, res: Response) => {
+  clearFraudSpikeHistory();
+  res.json({ message: 'Fraud spike history cleared', totalEntries: 0 });
+});
+
 // Dashboard endpoint
 router.get('/dashboard', authMiddleware, async (_req: Request, res: Response) => {
   try {
+    // Initialize history with baseline data if empty
+    initializeFraudSpikeHistory();
+    
     const currentSimulation = getCurrentSimulation();
     console.log('🔍 Fraud spikes dashboard - current simulation:', currentSimulation);
     
