@@ -459,7 +459,7 @@
   }
 
   .sticky-header-mobile {
-    @apply sticky top-0 z-30 bg-white/98 backdrop-blur-md border-b border-gray-200/50 px-4 py-3;
+    @apply sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-4 py-3;
   }
 
   /* Ultra-small screen navigation enhancements */
