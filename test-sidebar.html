@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Sidebar Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Menu Button -->
+    <button 
+        id="menuBtn"
+        class="fixed top-4 left-4 z-50 bg-blue-600 text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors lg:hidden"
+    >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
+    <!-- Overlay -->
+    <div 
+        id="overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"
+    ></div>
+
+    <!-- Sidebar -->
+    <div 
+        id="sidebar"
+        class="sidebar fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-50 overflow-y-auto"
+    >
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h1 class="font-bold text-lg">RAZORPAY SENTINEL</h1>
+            <button 
+                id="closeBtn"
+                class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="p-4 space-y-2">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 text-blue-600 border border-blue-200">
+                <span>🏠</span>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
+                <span>⚔️</span>
+                <span>Attack Simulator</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
+                <span>🔍</span>
+                <span>Investigation</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
+                <span>📊</span>
+                <span>Analytics</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="pt-16 px-4 py-6">
+        <h1 class="text-2xl font-bold mb-4">Mobile Sidebar Test</h1>
+        <p class="text-gray-600 mb-4">
+            Resize your browser to mobile width (or use DevTools mobile view) and click the blue hamburger button in the top-left to test the sidebar.
+        </p>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-lg font-semibold mb-2">Test Instructions:</h2>
+            <ol class="list-decimal list-inside space-y-1 text-gray-600">
+                <li>Make browser window narrow (mobile width)</li>
+                <li>Click the blue hamburger menu button</li>
+                <li>Sidebar should slide in from the left</li>
+                <li>Click overlay or X button to close</li>
+            </ol>
+        </div>
+    </main>
+
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const overlay = document.getElementById('overlay');
+        const sidebar = document.getElementById('sidebar');
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            overlay.classList.remove('hidden');
+            console.log('Sidebar opened');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.add('hidden');
+            console.log('Sidebar closed');
+        }
+
+        menuBtn.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        console.log('Mobile sidebar test loaded');
+    </script>
+</body>
+</html>

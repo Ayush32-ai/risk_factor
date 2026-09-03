@@ -145,84 +145,79 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
       </aside>
 
-      {/* Mobile sidebar - Using inline styles for reliability */}
-      <div 
-        className="lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl border-r border-gray-200 z-50 overflow-y-auto"
+      {/* Mobile sidebar - Simple version that works */}
+      <div
+        className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
         style={{
-          transform: isOpen ? 'translateX(0px)' : 'translateX(-100%)',
-          transition: 'transform 300ms ease-in-out',
-          willChange: 'transform'
+          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
-          {/* Mobile header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200/50 flex-shrink-0">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shadow-lg bg-white flex-shrink-0">
-                <Image
-                  src="/sentinel-logo.png"
-                  alt="Sentinel Logo"
-                  width={40}
-                  height={40}
-                  className="object-cover"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="font-bold text-sm tracking-wide text-gray-900 truncate">RAZORPAY SENTINEL</h1>
-                <p className="text-xs text-gray-600 truncate">Security Intelligence</p>
-              </div>
+        {/* Mobile header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shadow-lg bg-white">
+              <Image
+                src="/sentinel-logo.png"
+                alt="Sentinel Logo"
+                width={40}
+                height={40}
+                className="object-cover"
+              />
             </div>
-            <button
-              onClick={() => {
-                console.log('Close button clicked');
-                onClose?.();
-              }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0 ml-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Close navigation menu"
-            >
-              <X className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => {
-                    console.log('Nav item clicked:', item.label);
-                    handleItemClick();
-                  }}
-                  className={
-                    isActive 
-                      ? 'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px] bg-blue-50 text-blue-600 border border-blue-200 shadow-sm'
-                      : 'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px] text-gray-600 hover:text-gray-900 hover:bg-white/50 hover:shadow-sm active:bg-gray-100'
-                  }
-                >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="p-4 border-t border-gray-200/50 space-y-3 flex-shrink-0">
-            <div className="flex items-center gap-2 text-xs text-gray-600">
-              <Radio className="w-3 h-3 text-emerald-400 animate-pulse flex-shrink-0" />
-              <span className="text-emerald-400 font-medium">LIVE</span>
-              <span className="truncate">· All systems operational</span>
+            <div>
+              <h1 className="font-bold text-sm tracking-wide text-gray-900">RAZORPAY SENTINEL</h1>
+              <p className="text-xs text-gray-600">Security Intelligence</p>
             </div>
-            
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200/50 hover:border-red-300 hover:shadow-sm active:bg-red-100 min-h-[44px]"
-            >
-              <LogOut className="w-4 h-4 flex-shrink-0" />
-              <span>Logout</span>
-            </button>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
+
+        {/* Mobile navigation */}
+        <nav className="p-4 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={handleItemClick}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Mobile footer */}
+        <div className="p-4 border-t border-gray-200 mt-auto">
+          <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+            <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
+            <span className="text-emerald-400 font-medium">LIVE</span>
+            <span>· All systems operational</span>
+          </div>
+          
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
     </>
   );
 }

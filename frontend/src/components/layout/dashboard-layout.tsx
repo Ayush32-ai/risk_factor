@@ -21,41 +21,27 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Mobile menu button - Only visible on small screens */}
+      {/* Mobile hamburger button */}
       <button
-        onClick={() => {
-          console.log('Menu clicked, opening sidebar');
-          setSidebarOpen(true);
-        }}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-        aria-label="Open menu"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-[60] lg:hidden bg-blue-600 text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
       >
-        <Menu className="w-6 h-6 text-gray-600" />
+        <Menu className="w-6 h-6" />
       </button>
 
-      {/* Backdrop overlay for mobile */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => {
-            console.log('Backdrop clicked, closing sidebar');
-            setSidebarOpen(false);
-          }}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-[45] lg:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => {
-          console.log('Sidebar close called');
-          setSidebarOpen(false);
-        }} 
-      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main content */}
       <main className="lg:ml-64 min-h-screen">
-        {/* Add top padding on mobile to account for menu button */}
         <div className="pt-16 lg:pt-0 px-4 sm:px-6 lg:px-8 py-6">
           {children}
         </div>
