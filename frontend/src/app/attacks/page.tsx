@@ -175,8 +175,29 @@ export default function AttacksPage() {
           <motion.div
             key={String(sim?.generation)}
             initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="lg:col-span-2 sentinel-card border-red-500/20"
+            animate={{ 
+              scale: 1, 
+              opacity: 1,
+              ...(isBlindSpot && {
+                boxShadow: [
+                  "0 0 20px rgba(239, 68, 68, 0.3)",
+                  "0 0 40px rgba(239, 68, 68, 0.2)",
+                  "0 0 20px rgba(239, 68, 68, 0.3)"
+                ]
+              })
+            }}
+            transition={{
+              boxShadow: {
+                duration: 2,
+                repeat: isBlindSpot ? Infinity : 0,
+                repeatType: "reverse"
+              }
+            }}
+            className={`lg:col-span-2 sentinel-card ${
+              isBlindSpot 
+                ? 'border-red-500 bg-red-50/50 shadow-red-500/20 shadow-lg' 
+                : 'border-red-500/20'
+            }`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center h-48">
@@ -185,15 +206,28 @@ export default function AttacksPage() {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold font-mono">
+                  <h2 className={`text-xl font-bold font-mono ${
+                    isBlindSpot ? 'text-red-600' : 'text-white'
+                  }`}>
                     Generation {String(sim?.generation ?? 17)}
+                    {isBlindSpot && (
+                      <span className="ml-2 text-sm font-normal bg-red-600 text-white px-2 py-1 rounded">
+                        COMPROMISED
+                      </span>
+                    )}
                   </h2>
                   <span className={`text-2xl font-bold font-mono ${
-                    detectionRate < 30 ? 'text-red-500' : 
-                    detectionRate < 50 ? 'text-orange-500' : 
-                    detectionRate < 70 ? 'text-yellow-500' : 
-                    detectionRate < 85 ? 'text-blue-500' : 
-                    'text-emerald-500'
+                    isBlindSpot 
+                      ? 'text-red-600 animate-pulse' 
+                      : detectionRate < 30 
+                      ? 'text-red-500' 
+                      : detectionRate < 50 
+                      ? 'text-orange-500' 
+                      : detectionRate < 70 
+                      ? 'text-yellow-500' 
+                      : detectionRate < 85 
+                      ? 'text-blue-500' 
+                      : 'text-emerald-500'
                   }`}>
                     {detectionRate.toFixed(1)}% detected
                   </span>
@@ -202,19 +236,25 @@ export default function AttacksPage() {
                 <div className="grid grid-cols-3 gap-6 mb-6">
                   <div>
                     <p className="sentinel-label">Transactions</p>
-                    <p className="text-2xl font-bold font-mono mt-1">
+                    <p className={`text-2xl font-bold font-mono mt-1 ${
+                      isBlindSpot ? 'text-red-600' : ''
+                    }`}>
                       {formatNumber(Number(sim?.transactions_count ?? 84291))}
                     </p>
                   </div>
                   <div>
                     <p className="sentinel-label">Accounts</p>
-                    <p className="text-2xl font-bold font-mono mt-1">
+                    <p className={`text-2xl font-bold font-mono mt-1 ${
+                      isBlindSpot ? 'text-red-600' : ''
+                    }`}>
                       {formatNumber(Number(sim?.accounts_count ?? 421))}
                     </p>
                   </div>
                   <div>
                     <p className="sentinel-label">Merchants</p>
-                    <p className="text-2xl font-bold font-mono mt-1">
+                    <p className={`text-2xl font-bold font-mono mt-1 ${
+                      isBlindSpot ? 'text-red-600' : ''
+                    }`}>
                       {Number(sim?.merchants_count ?? 38)}
                     </p>
                   </div>
@@ -222,7 +262,7 @@ export default function AttacksPage() {
 
                 <ProgressBar
                   value={detectionRate}
-                  variant={detectionRate < 30 ? 'danger' : detectionRate < 60 ? 'warning' : 'success'}
+                  variant={isBlindSpot ? 'danger' : detectionRate < 30 ? 'danger' : detectionRate < 60 ? 'warning' : 'success'}
                   label="Detection Rate"
                 />
               </>
