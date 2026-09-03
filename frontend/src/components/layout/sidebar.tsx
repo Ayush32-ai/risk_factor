@@ -1,10 +1,9 @@
- 'use client';
+'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Shield,
   LayoutDashboard,
   Swords,
   Network,
@@ -42,9 +41,10 @@ const navItems = [
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  isMounted?: boolean;
 }
 
-export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
+export function Sidebar({ isOpen = true, onClose, isMounted = true }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -93,7 +93,6 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 width={40}
                 height={40}
                 className="object-cover"
-                onError={() => { /* Next/Image doesn't expose onError in SSR; fallback handled below */ }}
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -148,82 +147,85 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       </aside>
 
       {/* Mobile sidebar */}
-      <aside 
-        className={cn(
-          "lg:hidden fixed left-0 top-0 h-screen w-72 xxs:w-80 max-w-[85vw] bg-white/95 backdrop-blur-md border-r border-gray-200/50 z-50 shadow-2xl overflow-y-auto transition-all duration-300 mobile-safe-area",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-        aria-hidden={!isOpen}
-      >
-        {/* Mobile header */}
-        <div className="flex items-center justify-between card-responsive-padding border-b border-gray-200/50 flex-shrink-0">
-          <div className="flex items-center gap-2 xxs:gap-3 min-w-0 flex-1">
-            <div className="w-8 h-8 xxs:w-10 xxs:h-10 rounded-lg overflow-hidden flex items-center justify-center shadow-lg bg-white flex-shrink-0">
-              <Image
-                src="/sentinel-logo.png"
-                alt="Sentinel Logo"
-                width={40}
-                height={40}
-                className="object-cover"
-                onError={() => { /* Next/Image doesn't expose onError in SSR; fallback handled below */ }}
-              />
+      {isMounted && (
+        <aside 
+          className={cn(
+            "lg:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white/98 backdrop-blur-md border-r border-gray-200/50 shadow-2xl overflow-y-auto transition-all duration-300 ease-in-out",
+            isOpen ? "translate-x-0 z-50" : "-translate-x-full -z-10"
+          )}
+          aria-hidden={!isOpen}
+        >
+          {/* Mobile header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200/50 flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shadow-lg bg-white flex-shrink-0">
+                <Image
+                  src="/sentinel-logo.png"
+                  alt="Sentinel Logo"
+                  width={40}
+                  height={40}
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-bold text-sm tracking-wide text-gray-900 truncate">RAZORPAY SENTINEL</h1>
+                <p className="text-xs text-gray-600 truncate">Security Intelligence</p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="font-bold text-responsive-xs tracking-wide text-gray-900 truncate">RAZORPAY SENTINEL</h1>
-              <p className="text-responsive-micro text-gray-600 truncate">Security Intelligence</p>
+            <button
+              onClick={() => {
+                console.log('Close button clicked');
+                onClose?.();
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0 ml-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close navigation menu"
+            >
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => {
+                    console.log('Nav item clicked:', item.label);
+                    handleItemClick();
+                  }}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group min-h-[44px]',
+                    isActive 
+                      ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-white/50 hover:shadow-sm active:bg-gray-100'
+                  )}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-gray-200/50 space-y-3 flex-shrink-0">
+            <div className="flex items-center gap-2 text-xs text-gray-600">
+              <Radio className="w-3 h-3 text-emerald-400 animate-pulse flex-shrink-0" />
+              <span className="text-emerald-400 font-medium">LIVE</span>
+              <span className="truncate">· All systems operational</span>
             </div>
+            
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200/50 hover:border-red-300 hover:shadow-sm active:bg-red-100 min-h-[44px]"
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              <span>Logout</span>
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="card-responsive-padding-sm hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0 ml-2 touch-target"
-            aria-label="Close navigation menu"
-          >
-            <Icon icon={X} className="icon-responsive-sm text-gray-600" fallbackClassName="icon-responsive-sm bg-gray-500 rounded" />
-          </button>
-        </div>
-
-        <nav className="flex-1 card-responsive-padding space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={handleItemClick}
-                className={cn(
-                  'flex items-center gap-2 xxs:gap-3 card-responsive-padding-sm rounded-lg text-responsive-xs font-medium transition-all duration-200 group touch-target',
-                  isActive 
-                    ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50 hover:shadow-sm active:bg-gray-100'
-                )}
-              >
-                <Icon icon={item.icon} className="icon-responsive flex-shrink-0" fallbackClassName="icon-responsive bg-gray-500 rounded flex-shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="card-responsive-padding border-t border-gray-200/50 space-y-2 xxs:space-y-3 flex-shrink-0">
-          <div className="flex items-center gap-1 xxs:gap-2 text-responsive-micro text-gray-600">
-            <Icon 
-              icon={Radio} 
-              className="w-2 h-2 xxs:w-3 xxs:h-3 text-emerald-400 animate-pulse flex-shrink-0" 
-              fallbackClassName="w-2 h-2 xxs:w-3 xxs:h-3 bg-emerald-500 rounded flex-shrink-0"
-            />
-            <span className="text-emerald-400 font-medium">LIVE</span>
-            <span className="truncate">· All systems operational</span>
-          </div>
-          
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 xxs:gap-3 card-responsive-padding-sm text-responsive-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200/50 hover:border-red-300 hover:shadow-sm active:bg-red-100 touch-target"
-          >
-            <Icon icon={LogOut} className="icon-responsive-sm flex-shrink-0" fallbackClassName="icon-responsive-sm bg-red-500 rounded flex-shrink-0" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+        </aside>
+      )}
     </>
   );
 }
