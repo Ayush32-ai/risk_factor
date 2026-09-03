@@ -9,42 +9,66 @@ from datetime import datetime
 from app.config import settings
 
 
-# Dynamic defense templates with variability
+# Dynamic defense templates with much more variability and attack-specific rules
 DEFENSE_TEMPLATES = {
     "distributed_account_network": [
-        {"name": "Cross-account velocity", "description": "Aggregate transaction velocity across linked accounts", "impact": [18, 25]},
-        {"name": "Device relationship score", "description": "Score risk based on device-account graph density", "impact": [15, 22]},
-        {"name": "Merchant cluster score", "description": "Detect merchants receiving from coordinated account clusters", "impact": [12, 20]},
-        {"name": "Refund graph analysis", "description": "Track refund destination overlap with payment sources", "impact": [19, 26]},
-        {"name": "Network density threshold", "description": "Block transactions when account network density exceeds baseline", "impact": [14, 18]},
-        {"name": "Timing correlation analysis", "description": "Detect synchronized transaction timing patterns", "impact": [16, 23]},
+        {"name": "Cross-account velocity aggregation", "description": "Monitor transaction velocity across all accounts sharing device fingerprints", "impact": [18, 25]},
+        {"name": "Device relationship scoring", "description": "Calculate risk scores based on device-account graph density and centrality", "impact": [15, 22]},
+        {"name": "Merchant cluster correlation", "description": "Detect merchants receiving coordinated payments from account networks", "impact": [12, 20]},
+        {"name": "Refund destination analysis", "description": "Track overlap between payment sources and refund destinations", "impact": [19, 26]},
+        {"name": "Network density threshold", "description": "Block transactions when account network density exceeds dynamic baseline", "impact": [14, 18]},
+        {"name": "Timing correlation detection", "description": "Identify synchronized transaction timing patterns across accounts", "impact": [16, 23]},
+        {"name": "Behavioral homogeneity score", "description": "Flag accounts with suspiciously similar behavioral patterns", "impact": [13, 21]},
+        {"name": "Geographic clustering analysis", "description": "Detect accounts claiming different locations but sharing network patterns", "impact": [17, 24]},
+        {"name": "Payment method propagation", "description": "Track risk propagation through shared payment instruments", "impact": [15, 22]},
+        {"name": "Session overlap detection", "description": "Identify accounts with overlapping session timings and behaviors", "impact": [18, 25]},
     ],
     "refund_loop": [
-        {"name": "Refund destination validation", "description": "Block refunds to accounts in payment cluster", "impact": [22, 28]},
-        {"name": "Circular refund detection", "description": "Detect A→B→C→A refund cycles", "impact": [18, 25]},
-        {"name": "Refund velocity limits", "description": "Rate limit refunds from high-risk account clusters", "impact": [15, 21]},
-        {"name": "Cross-merchant refund tracking", "description": "Track refund patterns across merchant boundaries", "impact": [13, 19]},
+        {"name": "Circular refund detection", "description": "Detect A→B→C→A circular refund patterns using graph algorithms", "impact": [22, 28]},
+        {"name": "Refund velocity rate limiting", "description": "Dynamic rate limits on refunds from high-risk account clusters", "impact": [15, 21]},
+        {"name": "Cross-merchant refund tracking", "description": "Monitor refund patterns spanning multiple merchant boundaries", "impact": [13, 19]},
+        {"name": "Refund destination validation", "description": "Block refunds to accounts within the same payment cluster", "impact": [20, 26]},
+        {"name": "Temporal refund analysis", "description": "Detect unusual timing patterns in refund request sequences", "impact": [16, 23]},
+        {"name": "Refund amount correlation", "description": "Flag refunds with amounts matching previous transaction patterns", "impact": [14, 20]},
+        {"name": "Multi-hop refund tracking", "description": "Trace refund chains across multiple intermediary accounts", "impact": [19, 25]},
+        {"name": "Refund network centrality", "description": "Identify central nodes in refund networks using PageRank algorithms", "impact": [17, 24]},
     ],
     "merchant_cluster": [
-        {"name": "Merchant payment correlation", "description": "Detect coordinated payments to merchant clusters", "impact": [17, 24]},
-        {"name": "Merchant risk propagation", "description": "Propagate risk scores through merchant network", "impact": [14, 20]},
-        {"name": "Geographic clustering detection", "description": "Detect merchants with suspicious geographic clustering", "impact": [12, 18]},
+        {"name": "Merchant payment correlation", "description": "Detect coordinated payment patterns to merchant clusters", "impact": [17, 24]},
+        {"name": "Merchant risk propagation", "description": "Propagate risk scores through merchant collaboration networks", "impact": [14, 20]},
+        {"name": "Geographic merchant clustering", "description": "Flag merchants with suspicious geographic distribution patterns", "impact": [12, 18]},
+        {"name": "Revenue sharing detection", "description": "Identify merchants with coordinated revenue distribution patterns", "impact": [19, 26]},
+        {"name": "Cross-merchant timing analysis", "description": "Detect synchronized activity across merchant networks", "impact": [15, 22]},
+        {"name": "Merchant network density", "description": "Monitor density of connections between high-risk merchants", "impact": [16, 23]},
+        {"name": "Settlement pattern analysis", "description": "Analyze unusual settlement timing and distribution patterns", "impact": [18, 25]},
     ],
     "device_spoofing": [
-        {"name": "Device fingerprint entropy", "description": "Validate device fingerprint authenticity", "impact": [20, 27]},
-        {"name": "Behavioral device binding", "description": "Bind devices to consistent user behavior patterns", "impact": [16, 22]},
-        {"name": "Cross-device correlation", "description": "Detect suspicious cross-device account activity", "impact": [18, 25]},
+        {"name": "Device fingerprint entropy validation", "description": "Validate authenticity using fingerprint entropy analysis", "impact": [20, 27]},
+        {"name": "Behavioral device binding", "description": "Bind devices to consistent user behavioral fingerprints", "impact": [16, 22]},
+        {"name": "Cross-device correlation analysis", "description": "Detect suspicious activity patterns across device switches", "impact": [18, 25]},
+        {"name": "Device rotation frequency limits", "description": "Rate limit accounts with excessive device fingerprint changes", "impact": [17, 24]},
+        {"name": "Hardware consistency validation", "description": "Validate consistency of reported hardware characteristics", "impact": [15, 21]},
+        {"name": "Biometric binding verification", "description": "Cross-reference device changes with biometric behavioral patterns", "impact": [19, 26]},
+        {"name": "Network fingerprint correlation", "description": "Correlate device fingerprints with network-level identifiers", "impact": [14, 20]},
     ],
     "velocity_attacks": [
-        {"name": "Adaptive velocity thresholds", "description": "Dynamic velocity limits based on risk profile", "impact": [19, 26]},
-        {"name": "Time-window correlation", "description": "Detect velocity spikes across multiple time windows", "impact": [15, 21]},
-        {"name": "Multi-dimensional velocity", "description": "Velocity checks across amount, frequency, and merchant", "impact": [17, 24]},
+        {"name": "Adaptive velocity thresholds", "description": "Dynamic velocity limits based on real-time risk profiling", "impact": [19, 26]},
+        {"name": "Multi-dimensional velocity analysis", "description": "Velocity monitoring across amount, frequency, merchant, and geography", "impact": [17, 24]},
+        {"name": "Burst pattern detection", "description": "Identify and block coordinated transaction burst patterns", "impact": [15, 21]},
+        {"name": "Time-window correlation analysis", "description": "Detect velocity spikes across sliding time windows", "impact": [18, 25]},
+        {"name": "Account cluster velocity limits", "description": "Aggregate velocity limits across linked account networks", "impact": [16, 23]},
+        {"name": "Intelligent queuing system", "description": "Queue suspicious high-velocity transactions for enhanced review", "impact": [14, 20]},
+        {"name": "Velocity anomaly scoring", "description": "ML-based scoring of velocity patterns against historical norms", "impact": [20, 27]},
     ],
     "default": [
-        {"name": "Graph-based risk scoring", "description": "Evaluate transactions in network context", "impact": [18, 24]},
-        {"name": "Behavioral anomaly detection", "description": "ML model trained on attack patterns", "impact": [16, 22]},
-        {"name": "Real-time cluster monitoring", "description": "Alert on emerging account clusters", "impact": [13, 19]},
-        {"name": "Multi-signal fusion", "description": "Combine multiple risk signals for enhanced detection", "impact": [15, 21]},
+        {"name": "Graph-based risk propagation", "description": "Propagate risk scores through transaction and relationship graphs", "impact": [18, 24]},
+        {"name": "Behavioral anomaly ensemble", "description": "Ensemble ML models trained on diverse attack pattern datasets", "impact": [16, 22]},
+        {"name": "Real-time cluster monitoring", "description": "Continuous monitoring for emerging fraudulent account clusters", "impact": [13, 19]},
+        {"name": "Multi-signal fusion engine", "description": "Combine multiple risk signals using weighted ensemble methods", "impact": [15, 21]},
+        {"name": "Temporal pattern recognition", "description": "Deep learning models for temporal fraud pattern recognition", "impact": [17, 23]},
+        {"name": "Cross-entity relationship mining", "description": "Mine relationships between accounts, devices, and merchants", "impact": [14, 20]},
+        {"name": "Adversarial pattern detection", "description": "Detect adversarial attempts to evade existing detection systems", "impact": [19, 26]},
+        {"name": "Contextual risk assessment", "description": "Risk assessment considering transaction context and history", "impact": [16, 22]},
     ],
 }
 
@@ -73,25 +97,64 @@ class DefenseEngine:
         return current_baseline_rate
     
     def _select_dynamic_rules(self, attack_pattern: str, rule_count: int = 4) -> List[Dict]:
-        """Select and randomize defense rules with dynamic impact values."""
+        """Select and randomize defense rules with dynamic impact values and better variety."""
         templates = DEFENSE_TEMPLATES.get(attack_pattern, DEFENSE_TEMPLATES["default"])
         
-        # Select random subset of rules
+        # Ensure we have enough templates
+        if len(templates) < rule_count:
+            # If not enough specific templates, mix with default templates
+            default_templates = DEFENSE_TEMPLATES["default"]
+            all_templates = templates + [t for t in default_templates if t not in templates]
+            templates = all_templates
+        
+        # Add timestamp-based randomization to ensure different selections each time
+        import time
+        current_time = int(time.time() * 1000) % 10000
+        random.seed(current_time)  # Different seed each millisecond
+        
+        # Select random subset of rules (ensure different selection each time)
         selected_templates = random.sample(templates, min(rule_count, len(templates)))
         
-        # Generate dynamic rules with randomized impacts
+        # Generate dynamic rules with randomized impacts and enhanced descriptions
         rules = []
-        for template in selected_templates:
+        for i, template in enumerate(selected_templates):
             impact_range = template["impact"]
             actual_impact = random.randint(impact_range[0], impact_range[1])
             
+            # Add variety to descriptions
+            description_variants = [
+                template["description"],
+                f"Advanced {template['description'].lower()} with ML enhancement",
+                f"Real-time {template['description'].lower()} using graph algorithms",
+                f"Predictive {template['description'].lower()} with behavioral analysis"
+            ]
+            
+            selected_description = random.choice(description_variants)
+            
+            # Add randomized rule name variations
+            name_prefixes = ["Enhanced", "Adaptive", "Intelligent", "Advanced", "Dynamic", "Predictive"]
+            name_suffixes = ["Engine", "Analyzer", "Detector", "Monitor", "Validator", "Guard"]
+            
+            # Sometimes use original name, sometimes enhance it
+            if random.random() < 0.4:  # 40% chance to enhance name
+                enhanced_name = f"{random.choice(name_prefixes)} {template['name']} {random.choice(name_suffixes)}"
+            else:
+                enhanced_name = template["name"]
+            
             rules.append({
-                "name": template["name"],
-                "description": template["description"],
+                "name": enhanced_name,
+                "description": selected_description,
                 "impact": actual_impact,
                 "confidence": random.randint(85, 98),
-                "generated_at": datetime.now().isoformat()
+                "generated_at": datetime.now().isoformat(),
+                "source": "dynamic_template",
+                "attack_pattern": attack_pattern,
+                "rule_id": f"rule_{current_time}_{i}_{random.randint(100, 999)}"
             })
+        
+        print(f"DEBUG: Generated {len(rules)} dynamic rules for {attack_pattern}")
+        for rule in rules:
+            print(f"  - {rule['name']}: {rule['impact']}% impact")
         
         return rules
 
@@ -108,58 +171,48 @@ class DefenseEngine:
             # Use current detection rate if provided, otherwise calculate it
             detection_rate = current_detection_rate or self._calculate_dynamic_baseline()
             
-            prompt = f"""
-You are a cybersecurity expert specializing in payment fraud prevention at Razorpay. 
-Generate 3-4 specific, innovative defense rules to counter the attack pattern: "{attack_pattern}".
-
-Context:
-- Blind Spot ID: {blind_spot_id}
-- Attack Pattern: {attack_pattern}
-- Current Detection Rate: {detection_rate}%
-- Time: {datetime.now().strftime('%Y-%m-%d %H:%M')}
-- Previous Defenses Deployed: {len(defense_history)}
-
-Attack Pattern Details:
-{self._get_pattern_context(attack_pattern)}
-
-Requirements:
-1. Each rule must be practical and implementable in a real-time payment system
-2. Focus on graph-based analysis, behavioral patterns, and ML detection
-3. Include realistic impact scores (12-28 points each based on complexity)
-4. Rules should be specific to countering the "{attack_pattern}" attack vector
-5. Consider both prevention and detection mechanisms
-6. Include confidence levels (80-98%)
-
-Return your response as a JSON array with this exact format:
-[
-  {{"name": "Rule Name", "description": "Detailed rule description focusing on implementation", "impact": 22, "confidence": 92}},
-  {{"name": "Another Rule", "description": "Another detailed description", "impact": 18, "confidence": 87}}
-]
-
-Generate innovative, actionable defense rules that would significantly improve detection of "{attack_pattern}" attacks.
-"""
-
+            # Add timestamp and randomization to make each request unique
+            import time
+            session_id = f"def_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+            
+            # Randomize prompt approach for more variety
+            prompt_variants = [
+                self._get_technical_prompt(attack_pattern, detection_rate, blind_spot_id, session_id),
+                self._get_behavioral_prompt(attack_pattern, detection_rate, blind_spot_id, session_id),
+                self._get_network_prompt(attack_pattern, detection_rate, blind_spot_id, session_id),
+                self._get_ml_prompt(attack_pattern, detection_rate, blind_spot_id, session_id)
+            ]
+            
+            # Select random prompt variant
+            selected_prompt = random.choice(prompt_variants)
+            
+            # Randomize temperature for more variation
+            temperature = random.uniform(0.8, 1.2)  # Higher temperature for more creativity
+            
             async with httpx.AsyncClient(timeout=30) as client:
                 resp = await client.post(
                     self.GROQ_BASE_URL,
                     headers={
                         "Authorization": f"Bearer {settings.ai_api_key}",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "X-Session-ID": session_id  # Add session ID to prevent caching
                     },
                     json={
                         "model": "llama-3.1-70b-versatile",
                         "messages": [
                             {
                                 "role": "system",
-                                "content": "You are an expert cybersecurity analyst specializing in payment fraud detection. Always respond with valid JSON arrays containing defense rules with name, description, impact, and confidence fields."
+                                "content": f"You are a cybersecurity expert at Razorpay (Session: {session_id}). Generate UNIQUE, innovative defense rules. Never repeat previous suggestions. Always think creatively about new approaches to fraud detection and prevention."
                             },
                             {
                                 "role": "user", 
-                                "content": prompt
+                                "content": selected_prompt
                             }
                         ],
-                        "temperature": 0.7,
-                        "max_tokens": 1200
+                        "temperature": temperature,
+                        "max_tokens": 1500,
+                        "top_p": 0.9,  # Add nucleus sampling for more variety
+                        "seed": random.randint(1, 100000)  # Random seed for different outputs
                     }
                 )
                 
@@ -189,7 +242,9 @@ Generate innovative, actionable defense rules that would significantly improve d
                                     "impact": rule["impact"],
                                     "confidence": rule.get("confidence", random.randint(85, 95)),
                                     "generated_at": datetime.now().isoformat(),
-                                    "source": "ai_generated"
+                                    "source": "ai_generated",
+                                    "session_id": session_id,
+                                    "temperature": temperature
                                 }
                                 enhanced_rules.append(enhanced_rule)
                             
@@ -203,20 +258,132 @@ Generate innovative, actionable defense rules that would significantly improve d
         except Exception as e:
             print(f"AI defense generation failed: {e}")
 
-        # Fallback to dynamic templates
+        # Fallback to dynamic templates with more randomization
         print("DEBUG: Falling back to dynamic templates")
-        return self._select_dynamic_rules(attack_pattern)
+        return self._select_dynamic_rules(attack_pattern, random.randint(3, 6))
     
-    def _get_pattern_context(self, attack_pattern: str) -> str:
-        """Get detailed context about the attack pattern."""
-        contexts = {
-            "distributed_account_network": "Attackers create networks of accounts that share devices, payment methods, or behavioral patterns to bypass individual-account risk checks.",
-            "refund_loop": "Fraudsters exploit refund policies by creating circular refund paths that ultimately return money to accounts within their control network.",
-            "merchant_cluster": "Coordinated networks of merchants work together to process fraudulent transactions and split proceeds.",
-            "device_spoofing": "Attackers use device fingerprinting manipulation to appear as multiple legitimate users from different devices.",
-            "velocity_attacks": "High-speed transaction patterns designed to overwhelm rate limiting and processing delays.",
-        }
-        return contexts.get(attack_pattern, "General fraud pattern requiring network-based detection.")
+    def _get_technical_prompt(self, attack_pattern: str, detection_rate: float, blind_spot_id: str, session_id: str) -> str:
+        """Technical implementation-focused prompt."""
+        return f"""
+TECHNICAL DEFENSE GENERATION - Session {session_id}
+Attack Vector: {attack_pattern}
+Current Detection: {detection_rate}%
+Blind Spot: {blind_spot_id}
+
+As a senior fraud prevention engineer, design 4 technical countermeasures that could be deployed in production:
+
+Focus Areas:
+- Real-time stream processing algorithms
+- Graph database queries and network analysis
+- Machine learning model enhancements 
+- API rate limiting and behavioral throttling
+- Database indexing strategies for fraud detection
+
+Technical Requirements:
+- Must scale to millions of transactions/day
+- Sub-100ms response times
+- High precision (minimal false positives)
+- Integration with existing payment infrastructure
+
+Generate innovative technical solutions as JSON:
+[
+  {{"name": "Technical Rule Name", "description": "Implementation details with algorithms/tech stack", "impact": 15-25, "confidence": 85-95}}
+]
+"""
+
+    def _get_behavioral_prompt(self, attack_pattern: str, detection_rate: float, blind_spot_id: str, session_id: str) -> str:
+        """Behavioral analysis-focused prompt."""
+        return f"""
+BEHAVIORAL ANALYSIS DEFENSE - Session {session_id}
+Attack Pattern: {attack_pattern}
+Detection Rate: {detection_rate}%
+Target: {blind_spot_id}
+
+As a behavioral fraud analyst, create 4 defense rules based on user psychology and behavioral patterns:
+
+Behavioral Indicators:
+- Transaction timing and frequency patterns
+- User interaction behaviors (clicks, pauses, form completion)
+- Cross-device and cross-session behaviors
+- Merchant selection patterns and preferences
+- Geographic and temporal anomalies
+
+Focus on:
+- Subtle behavioral signatures that indicate coordination
+- Unusual user journey patterns
+- Deviation from normal customer lifecycles
+- Social engineering indicators
+
+Create behavioral detection rules as JSON:
+[
+  {{"name": "Behavioral Rule", "description": "User behavior analysis and detection logic", "impact": 12-28, "confidence": 80-98}}
+]
+"""
+
+    def _get_network_prompt(self, attack_pattern: str, detection_rate: float, blind_spot_id: str, session_id: str) -> str:
+        """Network and graph analysis-focused prompt."""
+        return f"""
+NETWORK ANALYSIS DEFENSE - Session {session_id}
+Attack Type: {attack_pattern}
+Current Performance: {detection_rate}%
+Vulnerability: {blind_spot_id}
+
+As a graph analytics expert, design 4 network-based detection mechanisms:
+
+Graph Analysis Techniques:
+- Community detection algorithms (Louvain, Label Propagation)
+- Centrality measures (PageRank, Betweenness, Eigenvector)
+- Graph neural networks for fraud detection
+- Temporal graph analysis and evolution tracking
+- Multi-layer network analysis (device, account, merchant layers)
+
+Network Patterns:
+- Hub and spoke structures
+- Dense subgraph formations
+- Bridge nodes connecting fraud clusters
+- Temporal clustering patterns
+- Cross-layer correlations
+
+Design graph-based defenses as JSON:
+[
+  {{"name": "Network Rule", "description": "Graph algorithm and network analysis approach", "impact": 16-26, "confidence": 88-96}}
+]
+"""
+
+    def _get_ml_prompt(self, attack_pattern: str, detection_rate: float, blind_spot_id: str, session_id: str) -> str:
+        """Machine learning and AI-focused prompt."""
+        return f"""
+ML/AI DEFENSE STRATEGY - Session {session_id}  
+Pattern: {attack_pattern}
+Baseline: {detection_rate}%
+Gap: {blind_spot_id}
+
+As an ML engineer specializing in fraud AI, create 4 advanced ML-based defenses:
+
+ML Approaches:
+- Ensemble methods combining multiple algorithms
+- Deep learning architectures (LSTM, Transformer, GNN)
+- Unsupervised anomaly detection (Isolation Forest, DBSCAN)
+- Real-time feature engineering and selection
+- Transfer learning from other fraud domains
+
+Advanced Techniques:
+- Few-shot learning for new attack patterns
+- Adversarial training against evolving attacks
+- Explainable AI for model transparency
+- Online learning and model adaptation
+- Multi-modal learning (text, images, behavioral data)
+
+Feature Engineering:
+- Temporal aggregation features
+- Cross-entity relationship features
+- Embedding-based similarity features
+
+Generate ML defense strategies as JSON:
+[
+  {{"name": "ML Rule", "description": "Machine learning algorithm and feature engineering details", "impact": 18-28, "confidence": 86-97}}
+]
+"""
 
     def _simulate_defense_effectiveness(self, rules: List[Dict], baseline_rate: float) -> Dict:
         """Simulate how effective the defense rules would be against attacks."""
@@ -261,15 +428,18 @@ Generate innovative, actionable defense rules that would significantly improve d
         """Generate defense rules - synchronous version for backward compatibility."""
         import asyncio
         
+        # Map frontend scenario names to internal pattern keys
+        mapped_pattern = self._map_attack_scenario_to_pattern(attack_pattern)
+        
         baseline_rate = current_detection_rate or self._calculate_dynamic_baseline()
         
         try:
             # Try to get AI-generated rules
-            rules = asyncio.run(self._generate_ai_defense(blind_spot_id, attack_pattern, baseline_rate))
+            rules = asyncio.run(self._generate_ai_defense(blind_spot_id, mapped_pattern, baseline_rate))
         except Exception as e:
             print(f"Failed to generate AI defense: {e}")
             # Fallback to dynamic templates
-            rules = self._select_dynamic_rules(attack_pattern)
+            rules = self._select_dynamic_rules(mapped_pattern)
         
         # Simulate defense effectiveness
         simulation_results = self._simulate_defense_effectiveness(rules, baseline_rate)
@@ -278,7 +448,7 @@ Generate innovative, actionable defense rules that would significantly improve d
         defense_result = {
             "id": f"defense-{int(time.time())}",
             "blindSpotId": blind_spot_id,
-            "attackPattern": attack_pattern,
+            "attackPattern": attack_pattern,  # Keep original scenario name
             "existingDetectionRate": baseline_rate,
             "generatedRules": rules,
             "generatedAt": datetime.now().isoformat(),
@@ -288,6 +458,17 @@ Generate innovative, actionable defense rules that would significantly improve d
         defense_history.append(defense_result)
         
         return defense_result
+    
+    def _map_attack_scenario_to_pattern(self, scenario: str) -> str:
+        """Map frontend attack scenarios to defense pattern keys."""
+        mapping = {
+            "Distributed Account Network": "distributed_account_network",
+            "Refund Loop Exploitation": "refund_loop", 
+            "Merchant Cluster Abuse": "merchant_cluster",
+            "Velocity Limit Bypass": "velocity_attacks",
+            "Device Fingerprint Rotation": "device_spoofing"
+        }
+        return mapping.get(scenario, "default")
 
     async def generate_async(self, blind_spot_id: str = "", attack_pattern: str = "default", current_detection_rate: float = None) -> Dict:
         """Generate defense rules - async version for better performance."""
