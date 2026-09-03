@@ -126,8 +126,8 @@ docker compose up --build
 | AI Engine | Python, FastAPI, scikit-learn, XGBoost, Pandas, NumPy |
 | Graph | Neo4j |
 | Database | PostgreSQL, Redis |
-| AI | Grok API (optional) |
-| Payment | Razorpay Test Mode |
+| AI | Grok API  |
+
 
 ## Architecture Decision
 
@@ -147,7 +147,7 @@ Copy `.env.example` to `.env` and configure:
 cp .env.example .env
 ```
 
-Optional: Set `GROK_API_KEY` for live AI assessments (mock responses used otherwise).
+Optional: Set `GROK_API_KEY` for live AI assessments.
 
 ## API Endpoints
 
@@ -170,6 +170,4 @@ Optional: Set `GROK_API_KEY` for live AI assessments (mock responses used otherw
 | POST | `/api/ml/retrain` | Retrain and promote champion (admin) |
 | WS | `/ws` | Live event feed |
 
-## License
 
-Internal — Razorpay Sentinel Project
