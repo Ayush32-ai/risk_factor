@@ -4,6 +4,15 @@ const config: Config = {
   darkMode: ['class'],
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
+    screens: {
+      'xxs': '320px', // Very small phones
+      'xs': '475px',  // Small phones in landscape
+      'sm': '640px',  // Large phones / small tablets
+      'md': '768px',  // Tablets
+      'lg': '1024px', // Laptops
+      'xl': '1280px', // Desktops
+      '2xl': '1536px', // Large desktops
+    },
     extend: {
       colors: {
         sentinel: {
@@ -30,6 +39,17 @@ const config: Config = {
           '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.2)' },
           '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' },
         },
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+      maxWidth: {
+        '8xl': '88rem',
+      },
+      zIndex: {
+        '60': '60',
+        '70': '70',
       },
     },
   },

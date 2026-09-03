@@ -23,10 +23,10 @@ export function MetricCard({
   delay = 0,
 }: MetricCardProps) {
   const cardColors = {
-    default: 'bg-white border-gray-200',
-    danger: 'bg-white border-red-200',
-    success: 'bg-white border-green-200',
-    warning: 'bg-white border-yellow-200',
+    default: 'bg-white/80 backdrop-blur-sm border-gray-200',
+    danger: 'bg-white/80 backdrop-blur-sm border-red-200',
+    success: 'bg-white/80 backdrop-blur-sm border-green-200',
+    warning: 'bg-white/80 backdrop-blur-sm border-yellow-200',
   }[variant];
 
   const valueColors = {
@@ -48,19 +48,24 @@ export function MetricCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className={cn('p-6 rounded-xl border shadow-sm hover:shadow-md transition-all', cardColors)}
+      className={cn(
+        'card-responsive-padding-sm rounded-lg sm:rounded-xl border-2 shadow-sm hover:shadow-lg transition-all duration-200',
+        cardColors
+      )}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
-          <p className={cn('text-2xl font-bold tracking-tight', valueColors)}>
-            {value}
-            {suffix && <span className="text-lg ml-1">{suffix}</span>}
-          </p>
+      <div className="flex items-start justify-between gap-2 xxs:gap-2 sm:gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-responsive-micro font-medium text-gray-600 mb-1 xxs:mb-1 sm:mb-2 truncate">{label}</p>
+          <div className={cn('font-bold tracking-tight', valueColors)}>
+            <span className="text-responsive-lg xxs:text-responsive-xl lg:text-responsive-2xl xl:text-responsive-3xl">
+              {value}
+            </span>
+            {suffix && <span className="text-responsive-xs xxs:text-responsive-sm lg:text-responsive-lg ml-1">{suffix}</span>}
+          </div>
         </div>
         {Icon && (
-          <div className={cn('p-3 rounded-lg', iconColors)}>
-            <Icon className="w-5 h-5" />
+          <div className={cn('card-responsive-padding-sm rounded-lg flex-shrink-0', iconColors)}>
+            <Icon className="icon-responsive" />
           </div>
         )}
       </div>
