@@ -20,29 +20,29 @@ const SIM_KEY = 'sentinel:current_simulation';
 
 // Intelligent blind spot detection based on multiple factors
 function calculateBlindSpotDiscovery(detectionRate: number, generation: number, scenario: string): boolean {
-  // Base threshold varies by scenario - higher thresholds make blind spots rarer
+  // Base threshold varies by scenario - moderate thresholds for balanced gameplay
   const scenarioThresholds = {
-    'Distributed Account Network': 20,  // Conservative - need very low detection
-    'Refund Loop Exploitation': 25,     // Moderate threshold 
-    'Merchant Cluster Abuse': 30,       // Higher threshold - easier to find blind spots
-    'Velocity Limit Bypass': 15,        // Very conservative - this is well-defended
-    'Device Fingerprint Rotation': 35,  // Highest threshold - often has blind spots
+    'Distributed Account Network': 30,  // Moderate threshold
+    'Refund Loop Exploitation': 35,    // Slightly higher threshold 
+    'Merchant Cluster Abuse': 40,      // Higher threshold - easier to find blind spots
+    'Velocity Limit Bypass': 25,       // Lower threshold - harder to exploit
+    'Device Fingerprint Rotation': 45, // Highest threshold - most vulnerable
   };
   
-  const threshold = scenarioThresholds[scenario as keyof typeof scenarioThresholds] || 25;
+  const threshold = scenarioThresholds[scenario as keyof typeof scenarioThresholds] || 30;
   
-  // Generation factor - higher generations get slight bonus but diminishing returns
-  const generationBonus = Math.min(generation * 1.5, 8); // Max 8% bonus at gen 5+
+  // Generation factor - moderate progression, guaranteed blind spot by gen 6-7
+  const generationBonus = Math.min(generation * 3, 20); // Max 20% bonus at gen 7
   const adjustedThreshold = threshold + generationBonus;
   
-  // Add significant randomness - 30% of blind spot discovery is pure chance
-  const randomFactor = (Math.random() - 0.5) * 15; // ±7.5% random variation
+  // Add moderate randomness - not too unpredictable
+  const randomFactor = (Math.random() - 0.5) * 12; // ±6% random variation
   const finalThreshold = adjustedThreshold + randomFactor;
   
-  // Additional random chance - sometimes attacks just fail regardless of detection rate
-  const randomFailure = Math.random() < 0.15; // 15% chance attack just fails
-  if (randomFailure && detectionRate > threshold * 0.7) {
-    return false; // Attack failed to find blind spot despite low detection
+  // Reduce random failure chance - make it more predictable
+  const randomFailure = Math.random() < 0.08; // 8% chance attack just fails
+  if (randomFailure && generation < 4) { // Only apply random failure for early generations
+    return false;
   }
   
   // Blind spot discovered if detection rate is below the dynamic threshold
@@ -141,19 +141,25 @@ router.get('/scenarios', authMiddleware, (_req: Request, res: Response) => {
 
 router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: Request, res: Response) => {
   const { target, scenario, generation } = req.body;
+  
+  // If we have a current simulation, continue from its generation instead of starting at 1
+  const current = getCurrentSimulation();
+  const continueGeneration = (current && current.scenario === scenario && current.generation) 
+    ? current.generation 
+    : generation || 1;
 
-  await logAuditEvent('simulation_started', `Attack simulation started — ${scenario}`, 'AI');
+  await logAuditEvent('simulation_started', `Attack simulation started — ${scenario} (Gen ${continueGeneration})`, 'AI');
 
-  const result = await runAttackSimulation(scenario, generation);
+  const result = await runAttackSimulation(scenario, continueGeneration);
   
   // More intelligent blind spot detection
-  const isBlindSpot = calculateBlindSpotDiscovery(result.detection_rate, generation, scenario);
+  const isBlindSpot = calculateBlindSpotDiscovery(result.detection_rate, continueGeneration, scenario);
   
   const simObj = {
     id: result.id || `sim-${Date.now()}`,
     target,
     scenario,
-    generation: result.generation || generation,
+    generation: result.generation || continueGeneration,
     transactions_count: result.transactions_count,
     accounts_count: result.accounts_count,
     merchants_count: result.merchants_count,
@@ -166,7 +172,7 @@ router.post('/start', authMiddleware, validateBody(simulateSchema), async (req: 
   if (simObj.blind_spot_discovered) {
     await logAuditEvent(
       'blind_spot_discovered',
-      `Blind spot discovered: ${scenario} (${getCurrentSimulation().detection_rate}% detection)`,
+      `Blind spot discovered: ${scenario} (${getCurrentSimulation().detection_rate}% detection, Gen ${continueGeneration})`,
       'AI'
     );
   }
@@ -214,9 +220,9 @@ router.post('/evolve', authMiddleware, async (_req: Request, res: Response) => {
 
 router.post('/start/demo', authMiddleware, async (_req: Request, res: Response) => {
   try {
-    // Create a demo simulation with realistic data that may or may not show blind spot
-    const demoDetectionRate = 35 + Math.random() * 50; // 35-85% range - much wider and higher
-    const demoGeneration = Math.floor(1 + Math.random() * 3); // Gen 1-3 for demo
+    // Create a demo simulation with realistic data - always starts from Gen 1
+    const demoDetectionRate = 45 + Math.random() * 40; // 45-85% range - moderate starting rates
+    const demoGeneration = 1; // Always start demo from Gen 1
     const demoScenario = 'Distributed Account Network';
     
     const demoSim = {
@@ -234,7 +240,7 @@ router.post('/start/demo', authMiddleware, async (_req: Request, res: Response) 
 
     setCurrentSimulation(demoSim);
     
-    await logAuditEvent('demo_simulation_started', `Demo attack simulation started — ${demoSim.scenario}`, 'System');
+    await logAuditEvent('demo_simulation_started', `Demo attack simulation started — ${demoSim.scenario} (Gen 1)`, 'System');
 
     console.log('✅ Demo simulation started:', demoSim);
     

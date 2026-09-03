@@ -13,49 +13,49 @@ except Exception:
 
 ATTACK_SCENARIOS = {
     "Distributed Account Network": {
-        "base_detection": 85.0,  # Starts with good detection
-        "evolution_rate": -5.0,   # Loses 5% per generation
-        "max_evolution": 35,      # Max 35% reduction
-        "variance": 20,           # ±20% random variation
+        "base_detection": 75.0,  # Moderate starting detection
+        "evolution_rate": -8.0,   # Loses 8% per generation
+        "max_evolution": 60,      # Max 60% reduction (unlimited generations)
+        "variance": 18,           # ±18% random variation
         "tx_multiplier": 5000,
         "account_multiplier": 25,
-        "blind_spot_threshold": 20,  # Conservative threshold
+        "blind_spot_threshold": 30,  # Moderate threshold
     },
     "Refund Loop Exploitation": {
-        "base_detection": 90.0,  # Easier to detect initially
-        "evolution_rate": -4.0,   # Slower evolution
-        "max_evolution": 30,
+        "base_detection": 80.0,  # Good starting detection
+        "evolution_rate": -7.0,   # Moderate evolution
+        "max_evolution": 55,
         "variance": 15,
         "tx_multiplier": 3000,
         "account_multiplier": 15,
-        "blind_spot_threshold": 25,
+        "blind_spot_threshold": 35,
     },
     "Merchant Cluster Abuse": {
-        "base_detection": 75.0,  # Moderate starting detection
-        "evolution_rate": -7.0,   # Moderate evolution
-        "max_evolution": 40,
-        "variance": 25,
+        "base_detection": 65.0,  # Lower starting detection
+        "evolution_rate": -10.0,  # Faster evolution
+        "max_evolution": 50,
+        "variance": 22,
         "tx_multiplier": 4000,
         "account_multiplier": 20,
-        "blind_spot_threshold": 30,  # Higher threshold - easier to find blind spots
+        "blind_spot_threshold": 40,  # Higher threshold - easier to find blind spots
     },
     "Velocity Limit Bypass": {
-        "base_detection": 88.0,
-        "evolution_rate": -3.0,   # Very slow evolution - well understood attack
-        "max_evolution": 25,
+        "base_detection": 85.0,
+        "evolution_rate": -6.0,   # Slower evolution
+        "max_evolution": 45,
         "variance": 12,
         "tx_multiplier": 6000,
         "account_multiplier": 30,
-        "blind_spot_threshold": 15,  # Very conservative
+        "blind_spot_threshold": 25,  # Lower threshold - harder to exploit
     },
     "Device Fingerprint Rotation": {
-        "base_detection": 70.0,  # Hardest to detect from start
-        "evolution_rate": -8.0,   # Fast evolution
-        "max_evolution": 45,
-        "variance": 22,
+        "base_detection": 60.0,  # Lowest starting detection
+        "evolution_rate": -12.0,  # Fastest evolution
+        "max_evolution": 55,
+        "variance": 25,
         "tx_multiplier": 2000,
         "account_multiplier": 10,
-        "blind_spot_threshold": 35,  # Highest threshold
+        "blind_spot_threshold": 45,  # Highest threshold - most vulnerable
     },
 }
 
@@ -127,17 +127,17 @@ class AttackSimulator:
         ))
         detection_rate = round(detection_rate, 1)
         
-        # Intelligent blind spot calculation
+        # Moderate blind spot calculation - guaranteed by gen 6-7
         threshold = config["blind_spot_threshold"]
-        generation_bonus = min(generation * 1.5, 8)  # Max 8% bonus at gen 5+
+        generation_bonus = min(generation * 3, 20)  # Max 20% bonus at gen 7
         adjusted_threshold = threshold + generation_bonus
-        random_factor = (random.random() - 0.5) * 15  # ±7.5% random variation
+        random_factor = (random.random() - 0.5) * 12  # ±6% random variation
         final_threshold = adjusted_threshold + random_factor
         
-        # Additional random chance - sometimes attacks just fail
-        random_failure = random.random() < 0.15  # 15% chance attack fails
+        # Reduce random failure chance for more predictable progression
+        random_failure = random.random() < 0.08 and generation < 4  # 8% chance, only early gens
         blind_spot_discovered = False
-        if not (random_failure and detection_rate > threshold * 0.7):
+        if not random_failure:
             blind_spot_discovered = detection_rate < final_threshold
 
         result = {

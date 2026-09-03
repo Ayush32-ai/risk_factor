@@ -122,7 +122,7 @@ export default function AttacksPage() {
                 className={`w-4 h-4 ${startMutation.isPending ? 'animate-spin' : ''}`}
                 fallbackClassName="w-4 h-4 bg-white rounded"
               />
-              Start Attack
+              {sim?.generation > 0 ? `Continue Gen ${sim.generation}` : 'Start Attack'}
             </button>
             <button
               onClick={() => evolveMutation.mutate()}
