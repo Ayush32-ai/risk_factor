@@ -76,6 +76,12 @@ export function MobileSidebar({ navItems }: MobileSidebarProps) {
     }
   };
 
+  const handleNavClick = () => {
+    // Close sidebar after navigation (don't prevent default)
+    console.log('Navigation clicked, closing sidebar...');
+    setIsOpen(false);
+  };
+
   const openSidebar = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -84,8 +90,11 @@ export function MobileSidebar({ navItems }: MobileSidebarProps) {
   };
 
   const closeSidebar = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
+    // Only prevent default for non-navigation clicks
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     console.log('Closing sidebar...');
     setIsOpen(false);
   };
@@ -152,7 +161,7 @@ export function MobileSidebar({ navItems }: MobileSidebarProps) {
                       ? 'bg-blue-50 text-blue-600 border border-blue-200'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
-                  onClick={closeSidebar}
+                  onClick={handleNavClick}
                 >
                   <IconComponent className="w-5 h-5 flex-shrink-0" />
                   <span>{item.label}</span>
