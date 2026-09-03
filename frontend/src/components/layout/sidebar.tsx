@@ -81,7 +81,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar only */}
       <aside className="hidden lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-64 xl:w-72 lg:flex lg:flex-col bg-white/80 backdrop-blur-sm border-r border-gray-200/50 z-50 shadow-lg overflow-y-auto">
         <div className="p-4 xl:p-6 border-b border-gray-200/50 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -144,80 +144,6 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           </button>
         </div>
       </aside>
-
-      {/* Mobile sidebar - Simple version that works */}
-      <div
-        className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
-        style={{
-          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s ease-in-out',
-        }}
-      >
-        {/* Mobile header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shadow-lg bg-white">
-              <Image
-                src="/sentinel-logo.png"
-                alt="Sentinel Logo"
-                width={40}
-                height={40}
-                className="object-cover"
-              />
-            </div>
-            <div>
-              <h1 className="font-bold text-sm tracking-wide text-gray-900">RAZORPAY SENTINEL</h1>
-              <p className="text-xs text-gray-600">Security Intelligence</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-
-        {/* Mobile navigation */}
-        <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={handleItemClick}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-blue-50 text-blue-600 border border-blue-200' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Mobile footer */}
-        <div className="p-4 border-t border-gray-200 mt-auto">
-          <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-            <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
-            <span className="text-emerald-400 font-medium">LIVE</span>
-            <span>· All systems operational</span>
-          </div>
-          
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
     </>
   );
 }

@@ -1,44 +1,50 @@
 'use client';
 
 import { Sidebar } from './sidebar';
-import { useState, useEffect } from 'react';
-import { Menu } from 'lucide-react';
+import { MobileSidebar } from './mobile-sidebar';
+import { useEffect, useState } from 'react';
+import {
+  LayoutDashboard,
+  Swords,
+  Network,
+  Search,
+  Eye,
+  FlaskConical,
+  ScrollText,
+  TrendingUp,
+  RotateCcw,
+  CreditCard,
+  BarChart3,
+} from 'lucide-react';
+
+const navItems = [
+  { href: '/', label: 'Overview', icon: LayoutDashboard },
+  { href: '/attacks', label: 'Attack Simulator', icon: Swords },
+  { href: '/graph', label: 'Transaction Graph', icon: Network },
+  { href: '/investigate', label: 'AI Investigation', icon: Search },
+  { href: '/blind-spots', label: 'Blind Spots', icon: Eye },
+  { href: '/defense', label: 'Defense Lab', icon: FlaskConical },
+  { href: '/fraud-spikes', label: 'Fraud Spikes', icon: TrendingUp },
+  { href: '/return-risk', label: 'Return Risk', icon: RotateCcw },
+  { href: '/chargebacks', label: 'Chargebacks', icon: CreditCard },
+  { href: '/ml-evaluation', label: 'Model Evaluation', icon: BarChart3 },
+  { href: '/audit', label: 'Audit & Security', icon: ScrollText },
+];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Close sidebar when screen becomes large
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    setMounted(true);
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Mobile hamburger button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-4 left-4 z-[60] lg:hidden bg-blue-600 text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+      {/* Desktop Sidebar */}
+      <Sidebar isOpen={false} onClose={() => {}} />
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[45] lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Mobile Sidebar */}
+      {mounted && <MobileSidebar navItems={navItems} />}
 
       {/* Main content */}
       <main className="lg:ml-64 min-h-screen">
